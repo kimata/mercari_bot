@@ -68,6 +68,7 @@ def login(driver, wait, config):
     if len(driver.find_elements_by_xpath('//button[contains(text(), "はじめる")]')) != 0:
         click_xpath(driver, '//button[contains(text(), "はじめる")]')
 
+    # NOTE: 「アカウント」がある場合は，ログイン済み
     if len(driver.find_elements_by_xpath('//mer-text[contains(text(), "アカウント")]')) != 0:
         return
 
