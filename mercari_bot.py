@@ -11,6 +11,7 @@ import time
 import os
 import pickle
 import sys
+import random
 
 import yaml
 import pprint
@@ -119,7 +120,7 @@ def iter_items_on_display(driver, wait, item_func):
         wait.until(EC.title_contains(name))
         item_func(driver, wait, name, price)
 
-        time.sleep(2)
+        time.sleep(4 + (6*random()))
         driver.get(list_url)
         wait.until(EC.presence_of_element_located((By.XPATH, '//mer-list[@data-testid="listed-item-list"]/mer-list-item')))
 
