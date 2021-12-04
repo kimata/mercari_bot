@@ -11,7 +11,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import click
 import time
 import os
-import pickle
 import sys
 import random
 
