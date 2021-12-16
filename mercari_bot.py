@@ -95,8 +95,8 @@ def create_driver():
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--lang=ja-JP')
-    options.add_argument('--window-size=1920,1024')
-    options.add_argument('--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"')
     options.add_argument('--user-data-dir=' + get_abs_path(CHROME_DATA_PATH))
 
     driver = webdriver.Chrome(options=options)
