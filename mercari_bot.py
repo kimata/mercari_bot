@@ -59,11 +59,11 @@ def expand_shadow_element(driver, element):
     
 def login(driver, wait, config):
     driver.get(LOGIN_URL)
-    
-    wait.until(lambda x:
-               x.find_elements_by_xpath('//mer-text[contains(text(), "お知らせ")]') or
-               x.find_elements_by_xpath('//button[contains(text(), "はじめる")]'))
 
+    wait.until(lambda x:
+               x.find_elements_by_xpath('//mer-text[contains(text(), "ログイン")]') or
+               x.find_elements_by_xpath('//mer-text[contains(text(), "アカウント")]') or
+               x.find_elements_by_xpath('//button[contains(text(), "はじめる")]'))
 
     if len(driver.find_elements_by_xpath('//button[contains(text(), "はじめる")]')) != 0:
         click_xpath(driver, '//button[contains(text(), "はじめる")]')
