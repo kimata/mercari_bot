@@ -59,8 +59,7 @@ def expand_shadow_element(driver, element):
     
 def login(driver, wait, config):
     driver.get(LOGIN_URL)
-
-    wait.until(EC.presence_of_element_located(By.XPATH, '//mer-text[contains(text(), "Mercari")]'))
+    time.sleep(1) # NOTE: これを削ると NG になる...
     wait.until(lambda x:
                x.find_elements_by_xpath('//mer-text[contains(text(), "ログイン")]') or
                x.find_elements_by_xpath('//mer-text[contains(text(), "アカウント")]') or
