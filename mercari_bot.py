@@ -147,11 +147,20 @@ def item_price_down(driver, wait, name, price):
     wait.until(EC.title_contains('商品の情報を編集'))
     wait.until(EC.presence_of_element_located((By.XPATH, '//input[@name="price"]')))
 
+    if len(driver.find_elements_by_xpath('//mer-price[@data-testid="shipping-fee"]')) != 0:
+        shipping_fee = int(driver.find_element_by_xpath('//mer-price[@data-testid="shipping-fee"]').get_attribute('value'))
+    else:
+        shipping_fee = 0
+
+    if (price - shipping_fee) < PRICE_THRESHOLD:
+        print('  現在価格が{:,}円 (送料: {:,}円) のため，スキップします．'.format(price, shipping_fee))
+        return
+
     cur_price = int(driver.find_element_by_xpath('//input[@name="price"]').get_attribute('value'))
-    if (cur_price != price):
+    if (cur_price+shipping_fee) != price:
         error('ページ遷移中に価格が変更されました．')
 
-    new_price = int((price - PRICE_DOWN_STEP) / 10) * 10 # 10円単位に丸める
+    new_price = int((price - shipping_fee - PRICE_DOWN_STEP) / 10) * 10 # 10円単位に丸める
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.CONTROL + 'a')
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.BACK_SPACE)
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(new_price)
@@ -159,12 +168,11 @@ def item_price_down(driver, wait, name, price):
 
     wait.until(EC.title_contains(name))
 
-    driver.save_screenshot('test1.png')
     wait.until(EC.presence_of_element_located((By.XPATH, '//mer-price')))
 
     cur_price = int(driver.find_element_by_xpath('//mer-price').get_attribute('value'))
 
-    if (cur_price != new_price):
+    if (cur_price - shipping_fee) != new_price:
         error('編集後の価格が意図したものと異なっています．')
 
     print('  {:,}円 -> {:,}円'.format(price, cur_price))
