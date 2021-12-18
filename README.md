@@ -10,8 +10,6 @@
 
 `./mercari_bot.py`
 
-`bundle install`
-
 # ライセンス
 
 Apache License Version 2.0 を適用します．
