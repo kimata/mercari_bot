@@ -22,8 +22,8 @@ import pathlib
 LOGIN_URL = 'https://jp.mercari.com'
 CONFIG_PATH = 'config.yml'
 CHROME_DATA_PATH = 'chrome_data'
-PRICE_DOWN_STEP = 10
-PRICE_THRESHOLD = 5000
+PRICE_DOWN_STEP = 100
+PRICE_THRESHOLD = 3000
 
 
 def get_abs_path(path):
