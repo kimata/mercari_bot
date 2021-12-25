@@ -13,17 +13,20 @@ import time
 import os
 import sys
 import random
+import inspect
+import re
 
 import yaml
 import pprint
 import pathlib
-
+import traceback
 
 LOGIN_URL = "https://jp.mercari.com"
 CONFIG_PATH = "config.yml"
 CHROME_DATA_PATH = "chrome_data"
 PRICE_DOWN_STEP = 100
 PRICE_THRESHOLD = 3000
+DUMP_PATH = "debug"
 
 
 def get_abs_path(path):
@@ -55,6 +58,25 @@ def click_xpath(driver, xpath, wait=None):
 def expand_shadow_element(driver, element):
     shadow_root = driver.execute_script("return arguments[0].shadowRoot", element)
     return shadow_root
+
+
+def dump_page(driver, index):
+    name = inspect.stack()[1].function.replace("<", "").replace(">", "")
+    dump_path = pathlib.Path(DUMP_PATH)
+
+    os.makedirs(str(dump_path), exist_ok=True)
+
+    png_path = dump_path / (
+        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
+    )
+    htm_path = dump_path / (
+        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm")
+    )
+
+    driver.save_screenshot(str(png_path))
+
+    with open(str(htm_path), "w") as f:
+        f.write(driver.page_source)
 
 
 def login(driver, wait, config):
@@ -236,10 +258,13 @@ config = load_config()
 driver = create_driver()
 
 wait = WebDriverWait(driver, 5)
-login(driver, wait, config)
 
-iter_items_on_display(driver, wait, item_price_down)
+try:
+    login(driver, wait, config)
+    iter_items_on_display(driver, wait, item_price_down)
+except:
+    dump_page(driver, int(random.random() * 100))
+    print(traceback.format_exc())
 
+driver.close()
 driver.quit()
-
-sys.exit(0)
