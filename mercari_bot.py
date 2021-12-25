@@ -182,7 +182,8 @@ def iter_items_on_display(driver, wait, item_func):
             + str(i)
             + "]//a"
         ).click()
-        wait.until(EC.title_contains(name))
+
+        wait.until(EC.title_contains(re.sub(" +", " ", name)))
         item_func(driver, wait, name, price)
 
         time.sleep(4 + (6 * random.random()))
@@ -236,7 +237,7 @@ def item_price_down(driver, wait, name, total_price):
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(new_price)
     click_xpath(driver, '//button[contains(text(), "変更する")]')
 
-    wait.until(EC.title_contains(name))
+    wait.until(EC.title_contains(re.sub(" +", " ", name)))
 
     wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
 
