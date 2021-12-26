@@ -25,6 +25,7 @@ import yaml
 import pprint
 import pathlib
 import traceback
+import urllib.request
 
 LOGIN_URL = "https://jp.mercari.com"
 CONFIG_PATH = "config.yml"
@@ -33,6 +34,7 @@ CHROME_DATA_PATH = "chrome_data"
 PRICE_DOWN_STEP = 100
 PRICE_THRESHOLD = 3000
 DUMP_PATH = "debug"
+DATA_PATH = "data"
 LOG_FORMAT = (
     "%(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
 )
@@ -171,6 +173,34 @@ def create_driver():
     driver = webdriver.Chrome(options=options)
 
     return driver
+
+
+def item_save(driver, wait, item):
+    logging.info("出品情報の保存を行います．")
+    item_path = pathlib.Path(DATA_PATH) / item["id"]
+    os.makedirs(str(item_path), exist_ok=True)
+
+    thumb_elem_list = driver.find_elements_by_xpath("//mer-item-thumbnail")
+    for i, thumb_elem in enumerate(thumb_elem_list[: len(thumb_elem_list) // 2]):
+        thumb_url = thumb_elem.get_attribute("src")
+        thumb_path = item_path / (str(i) + ".jpg")
+        if not thumb_path.exists():
+            logging.info(
+                "Save {url} to {path}".format(url=thumb_url, path=str(thumb_path))
+            )
+            urllib.request.urlretrieve(thumb_url, str(thumb_path))
+            random_sleep(1)
+
+    desc_root = expand_shadow_element(
+        driver, driver.find_element_by_xpath("//mer-show-more")
+    )
+
+    text_path = str(item_path / "desc.txt")
+
+    logging.info("Save content to {path}".format(path=text_path))
+    desc = desc_root.find_element_by_css_selector("div.content").text
+    with open(text_path, mode="w") as f:
+        f.write(desc)
 
 
 def item_price_down(driver, wait, item):
@@ -327,7 +357,7 @@ wait = WebDriverWait(driver, 5)
 
 try:
     login(driver, wait, config)
-    iter_items_on_display(driver, wait, [item_price_down])
+    iter_items_on_display(driver, wait, [item_save, item_price_down])
 except:
     logging.error("URL: {url}".format(url=driver.current_url))
     logging.error(traceback.format_exc())
