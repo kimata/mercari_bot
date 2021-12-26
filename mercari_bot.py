@@ -71,6 +71,10 @@ def logger_init():
     logger.addHandler(log_handler)
 
 
+def random_sleep(sec):
+    time.sleep(sec + sec / 2.0 * random.random())
+
+
 def get_abs_path(path):
     return str(pathlib.Path(os.path.dirname(__file__), path))
 
@@ -169,7 +173,70 @@ def create_driver():
     return driver
 
 
-def iter_items_on_display(driver, wait, item_func):
+def item_price_down(driver, wait, item):
+    logging.info("{down_step}円の値下げを行います．".format(down_step=PRICE_DOWN_STEP))
+    if item["price"] < PRICE_THRESHOLD:
+        logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
+        return
+
+    click_xpath(driver, '//mer-button[@data-testid="checkout-button"]')
+    wait.until(EC.title_contains("商品の情報を編集"))
+    wait.until(EC.presence_of_element_located((By.XPATH, '//input[@name="price"]')))
+
+    # NOTE: 梱包・発送たのメル便の場合は送料を取得
+    if (
+        len(driver.find_elements_by_xpath('//mer-price[@data-testid="shipping-fee"]'))
+        != 0
+    ):
+        shipping_fee = int(
+            driver.find_element_by_xpath(
+                '//mer-price[@data-testid="shipping-fee"]'
+            ).get_attribute("value")
+        )
+    else:
+        shipping_fee = 0
+
+    price = item["price"] - shipping_fee
+
+    if price < PRICE_THRESHOLD:
+        logging.info(
+            "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
+                price=price, shipping=shipping_fee
+            )
+        )
+        return
+
+    cur_price = int(
+        driver.find_element_by_xpath('//input[@name="price"]').get_attribute("value")
+    )
+    if cur_price != price:
+        raise RuntimeError("ページ遷移中に価格が変更されました．")
+
+    new_price = int((price - PRICE_DOWN_STEP) / 10) * 10  # 10円単位に丸める
+    driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.CONTROL + "a")
+    driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.BACK_SPACE)
+    driver.find_element_by_xpath('//input[@name="price"]').send_keys(new_price)
+    click_xpath(driver, '//button[contains(text(), "変更する")]')
+
+    wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
+
+    wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
+
+    new_total_price = int(
+        driver.find_element_by_xpath("//mer-price").get_attribute("value")
+    )
+
+    if new_total_price != (new_price + shipping_fee):
+        raise RuntimeError("編集後の価格が意図したものと異なっています．")
+
+    logging.info(
+        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(
+            total=item["price"], new_total=new_total_price
+        )
+    )
+
+
+def iter_items_on_display(driver, wait, item_func_list):
     click_xpath(driver, '//mer-text[contains(text(), "アカウント")]')
     click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
 
@@ -197,12 +264,34 @@ def iter_items_on_display(driver, wait, item_func):
                 + "]//mer-item-object"
             ),
         )
+        item_url = driver.find_element_by_xpath(
+            '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
+            + str(i)
+            + "]//a"
+        ).get_attribute("href")
+        item_id = item_url.split("/")[-1]
 
         name = item_root.find_element_by_css_selector("div.container").get_attribute(
             "aria-label"
         )
         price = int(
             item_root.find_element_by_css_selector("mer-price").get_attribute("value")
+        )
+        try:
+            view = int(
+                item_root.find_element_by_css_selector(
+                    "mer-icon-eye-outline + span.icon-text"
+                ).text
+            )
+        except:
+            view = 0
+
+        item = {"id": item_id, "name": name, "price": price, "view": view}
+
+        logging.info(
+            "{name} [{id}] [{price:,}円] [{view:,} view] を処理します．".format(
+                id=item["id"], name=item["name"], price=item["price"], view=item["view"]
+            )
         )
 
         driver.find_element_by_xpath(
@@ -213,78 +302,16 @@ def iter_items_on_display(driver, wait, item_func):
 
         wait.until(EC.title_contains(re.sub(" +", " ", name)))
 
-        logging.info("{name} を処理します．".format(name=name))
-        item_func(driver, wait, name, price)
+        for item_func in item_func_list:
+            item_func(driver, wait, item)
 
-        time.sleep(4 + (6 * random.random()))
+        random_sleep(4)
         driver.get(list_url)
         wait.until(
             EC.presence_of_element_located(
                 (By.XPATH, '//mer-list[@data-testid="listed-item-list"]/mer-list-item')
             )
         )
-
-
-def item_price_down(driver, wait, name, total_price):
-    if total_price < PRICE_THRESHOLD:
-        logging.info("現在価格が{price:,}円のため，スキップします．".format(price=total_price))
-        return
-
-    click_xpath(driver, '//mer-button[@data-testid="checkout-button"]')
-    wait.until(EC.title_contains("商品の情報を編集"))
-    wait.until(EC.presence_of_element_located((By.XPATH, '//input[@name="price"]')))
-
-    # NOTE: 梱包・発送たのメル便の場合は送料を取得
-    if (
-        len(driver.find_elements_by_xpath('//mer-price[@data-testid="shipping-fee"]'))
-        != 0
-    ):
-        shipping_fee = int(
-            driver.find_element_by_xpath(
-                '//mer-price[@data-testid="shipping-fee"]'
-            ).get_attribute("value")
-        )
-    else:
-        shipping_fee = 0
-
-    price = total_price - shipping_fee
-
-    if price < PRICE_THRESHOLD:
-        logging.info(
-            "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
-                price=price, shipping=shipping_fee
-            )
-        )
-        return
-
-    cur_price = int(
-        driver.find_element_by_xpath('//input[@name="price"]').get_attribute("value")
-    )
-    if cur_price != price:
-        raise RuntimeError("ページ遷移中に価格が変更されました．")
-
-    new_price = int((price - PRICE_DOWN_STEP) / 10) * 10  # 10円単位に丸める
-    driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.CONTROL + "a")
-    driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.BACK_SPACE)
-    driver.find_element_by_xpath('//input[@name="price"]').send_keys(new_price)
-    click_xpath(driver, '//button[contains(text(), "変更する")]')
-
-    wait.until(EC.title_contains(re.sub(" +", " ", name)))
-
-    wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
-
-    new_total_price = int(
-        driver.find_element_by_xpath("//mer-price").get_attribute("value")
-    )
-
-    if new_total_price != (new_price + shipping_fee):
-        raise RuntimeError("編集後の価格が意図したものと異なっています．")
-
-    logging.info(
-        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(
-            total=total_price, new_total=new_total_price
-        )
-    )
 
 
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
@@ -300,10 +327,9 @@ wait = WebDriverWait(driver, 5)
 
 try:
     login(driver, wait, config)
-    iter_items_on_display(driver, wait, item_price_down)
-except Exception as e:
+    iter_items_on_display(driver, wait, [item_price_down])
+except:
     logging.error("URL: {url}".format(url=driver.current_url))
-    logging.error(e.message)
     logging.error(traceback.format_exc())
     dump_page(driver, int(random.random() * 100))
 
