@@ -293,10 +293,6 @@ logger_init()
 
 logging.info("開始します．")
 
-# NOTE: 端末から実行していない場合は，動き始める前にランダムな時間待つ
-if not sys.stdin.isatty():
-    time.sleep(600 * random.random())
-
 config = load_config()
 driver = create_driver()
 
