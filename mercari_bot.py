@@ -198,14 +198,21 @@ def item_save(driver, wait, item):
     desc_path = str(item_path / "desc.txt")
     logging.info("Save content to {path}".format(path=desc_path))
     desc = desc_root.find_element_by_css_selector("div.content").text
-    with open(desc_path, mode="w") as f:
-        f.write(desc)
 
-    info_path = str(item_path / "info.yaml")
+    shipping = driver.find_element_by_xpath('//span[@data-testid="配送の方法"]').text.split(
+        "\n"
+    )[0]
+
+    item["desc"] = desc
+    item["shipping"] = shipping
+
+    info_path = str(item_path / "info.yml")
     logging.info("Save info to {path}".format(path=info_path))
+
     with open(info_path, mode="w") as f:
-        f.write("name: {name}".format(name=item["name"]))
-        f.write("price: {price}".format(price=item["price"]))
+        yaml.dump(
+            item, f, default_flow_style=False, encoding="utf-8", allow_unicode=True
+        )
 
 
 def item_price_down(driver, wait, item):
