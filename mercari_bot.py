@@ -195,12 +195,17 @@ def item_save(driver, wait, item):
         driver, driver.find_element_by_xpath("//mer-show-more")
     )
 
-    text_path = str(item_path / "desc.txt")
-
-    logging.info("Save content to {path}".format(path=text_path))
+    desc_path = str(item_path / "desc.txt")
+    logging.info("Save content to {path}".format(path=desc_path))
     desc = desc_root.find_element_by_css_selector("div.content").text
-    with open(text_path, mode="w") as f:
+    with open(desct_path, mode="w") as f:
         f.write(desc)
+
+    info_path = str(item_path / "info.yaml")
+    logging.info("Save info to {path}".format(path=info_path))
+    with open(info_path, mode="w") as f:
+        f.write("name: {name}".format(name=item["name"]))
+        f.write("price: {price}".format(price=item["price"]))
 
 
 def item_price_down(driver, wait, item):
