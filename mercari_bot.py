@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # - coding: utf-8 --
 import chromedriver_binary
+import coloredlogs
+import logging
+import logging.handlers
+import io
+import bz2
+import inspect
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,7 +14,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-import click
 import time
 import os
 import sys
@@ -23,25 +28,51 @@ import traceback
 
 LOGIN_URL = "https://jp.mercari.com"
 CONFIG_PATH = "config.yml"
+LOG_PATH = "log"
 CHROME_DATA_PATH = "chrome_data"
 PRICE_DOWN_STEP = 100
 PRICE_THRESHOLD = 3000
 DUMP_PATH = "debug"
+LOG_FORMAT = (
+    "%(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
+)
+
+
+class GZipRotator:
+    def namer(name):
+        return name + ".bz2"
+
+    def rotator(source, dest):
+        with open(source, "rb") as fs:
+            with bz2.open(dest, "wb") as fd:
+                fd.writelines(fs)
+        os.remove(source)
+
+
+def logger_init():
+    coloredlogs.install(fmt=LOG_FORMAT)
+
+    log_path = pathlib.Path(LOG_PATH)
+    os.makedirs(str(log_path), exist_ok=True)
+
+    logger = logging.getLogger()
+    log_handler = logging.handlers.RotatingFileHandler(
+        str(log_path / "mercari_bot.log"),
+        encoding="utf8",
+        maxBytes=1 * 1024 * 1024,
+        backupCount=10,
+    )
+    log_handler.formatter = logging.Formatter(
+        fmt=LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    log_handler.namer = GZipRotator.namer
+    log_handler.rotator = GZipRotator.rotator
+
+    logger.addHandler(log_handler)
 
 
 def get_abs_path(path):
     return str(pathlib.Path(os.path.dirname(__file__), path))
-
-
-def error(message):
-    click.secho("ERROR: ", fg="red", bold=True, nl=False)
-    click.secho(message)
-    sys.exit(-1)
-
-
-def info(message):
-    click.secho("INFO: ", fg="white", bold=True, nl=False)
-    click.secho(message)
 
 
 def load_config():
@@ -154,7 +185,7 @@ def iter_items_on_display(driver, wait, item_func):
         )
     )
 
-    info("{}個の出品があります".format(item_count))
+    logging.info("{item_count}個の出品があります．".format(item_count=item_count))
 
     list_url = driver.current_url
     for i in range(1, item_count):
@@ -174,9 +205,6 @@ def iter_items_on_display(driver, wait, item_func):
             item_root.find_element_by_css_selector("mer-price").get_attribute("value")
         )
 
-        click.secho("* ", fg="green", bold=True, nl=False)
-        click.secho(name)
-
         driver.find_element_by_xpath(
             '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
             + str(i)
@@ -184,6 +212,8 @@ def iter_items_on_display(driver, wait, item_func):
         ).click()
 
         wait.until(EC.title_contains(re.sub(" +", " ", name)))
+
+        logging.info("{name} を処理します．".format(name=name))
         item_func(driver, wait, name, price)
 
         time.sleep(4 + (6 * random.random()))
@@ -194,12 +224,10 @@ def iter_items_on_display(driver, wait, item_func):
             )
         )
 
-    info("完了")
-
 
 def item_price_down(driver, wait, name, total_price):
     if total_price < PRICE_THRESHOLD:
-        print("  現在価格が{:,}円のため，スキップします．".format(total_price))
+        logging.info("現在価格が{price:,}円のため，スキップします．".format(price=total_price))
         return
 
     click_xpath(driver, '//mer-button[@data-testid="checkout-button"]')
@@ -222,14 +250,18 @@ def item_price_down(driver, wait, name, total_price):
     price = total_price - shipping_fee
 
     if price < PRICE_THRESHOLD:
-        print("  現在価格が{:,}円 (送料: {:,}円) のため，スキップします．".format(price, shipping_fee))
+        logging.info(
+            "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
+                price=price, shipping=shipping_fee
+            )
+        )
         return
 
     cur_price = int(
         driver.find_element_by_xpath('//input[@name="price"]').get_attribute("value")
     )
     if cur_price != price:
-        error("ページ遷移中に価格が変更されました．")
+        raise RuntimeError("ページ遷移中に価格が変更されました．")
 
     new_price = int((price - PRICE_DOWN_STEP) / 10) * 10  # 10円単位に丸める
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.CONTROL + "a")
@@ -246,10 +278,18 @@ def item_price_down(driver, wait, name, total_price):
     )
 
     if new_total_price != (new_price + shipping_fee):
-        error("編集後の価格が意図したものと異なっています．")
+        raise RuntimeError("編集後の価格が意図したものと異なっています．")
 
-    print("  {:,}円 -> {:,}円".format(total_price, new_total_price))
+    logging.info(
+        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(
+            total=total_price, new_total=new_total_price
+        )
+    )
 
+
+logger_init()
+
+logging.info("開始します．")
 
 # NOTE: 端末から実行していない場合は，動き始める前にランダムな時間待つ
 if not sys.stdin.isatty():
@@ -263,9 +303,13 @@ wait = WebDriverWait(driver, 5)
 try:
     login(driver, wait, config)
     iter_items_on_display(driver, wait, item_price_down)
-except:
+except Exception as e:
+    logging.error("URL: {url}".format(url=driver.current_url))
+    logging.error(e.message)
+    logging.error(traceback.format_exc())
     dump_page(driver, int(random.random() * 100))
-    print(traceback.format_exc())
 
 driver.close()
 driver.quit()
+
+logging.info("完了しました．")
