@@ -16,7 +16,7 @@ sudo apt install python3-coloredlogs
 pip3 install chromedriver-binary==95.0.4638.69.0
 ```
 
-`chromedriver-binary` のバージョンをしているのは，
+`chromedriver-binary` のバージョンを指定しているのは，
 現時点('21/12/26)だと最新バージョンにバグがあるためです．
 
 ## 実行方法
