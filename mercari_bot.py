@@ -271,6 +271,41 @@ def item_price_down(driver, wait, item):
     )
 
 
+def parse_item(driver, index):
+    item_root = expand_shadow_element(
+        driver,
+        driver.find_element_by_xpath(
+            '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
+            + str(index)
+            + "]//mer-item-object"
+        ),
+    )
+    item_url = driver.find_element_by_xpath(
+        '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
+        + str(index)
+        + "]//a"
+    ).get_attribute("href")
+    item_id = item_url.split("/")[-1]
+
+    name = item_root.find_element_by_css_selector("div.container").get_attribute(
+        "aria-label"
+    )
+    price = int(
+        item_root.find_element_by_css_selector("mer-price").get_attribute("value")
+    )
+
+    try:
+        view = int(
+            item_root.find_element_by_css_selector(
+                "mer-icon-eye-outline + span.icon-text"
+            ).text
+        )
+    except:
+        view = 0
+
+    return {"id": item_id, "name": name, "price": price, "view": view}
+
+
 def iter_items_on_display(driver, wait, item_func_list):
     click_xpath(driver, '//mer-text[contains(text(), "アカウント")]')
     click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
@@ -291,37 +326,7 @@ def iter_items_on_display(driver, wait, item_func_list):
 
     list_url = driver.current_url
     for i in range(1, item_count):
-        item_root = expand_shadow_element(
-            driver,
-            driver.find_element_by_xpath(
-                '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
-                + str(i)
-                + "]//mer-item-object"
-            ),
-        )
-        item_url = driver.find_element_by_xpath(
-            '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
-            + str(i)
-            + "]//a"
-        ).get_attribute("href")
-        item_id = item_url.split("/")[-1]
-
-        name = item_root.find_element_by_css_selector("div.container").get_attribute(
-            "aria-label"
-        )
-        price = int(
-            item_root.find_element_by_css_selector("mer-price").get_attribute("value")
-        )
-        try:
-            view = int(
-                item_root.find_element_by_css_selector(
-                    "mer-icon-eye-outline + span.icon-text"
-                ).text
-            )
-        except:
-            view = 0
-
-        item = {"id": item_id, "name": name, "price": price, "view": view}
+        item = parse_item(driver, i)
 
         logging.info(
             "{name} [{id}] [{price:,}円] [{view:,} view] を処理します．".format(
@@ -335,7 +340,7 @@ def iter_items_on_display(driver, wait, item_func_list):
             + "]//a"
         ).click()
 
-        wait.until(EC.title_contains(re.sub(" +", " ", name)))
+        wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
 
         for item_func in item_func_list:
             item_func(driver, wait, item)
