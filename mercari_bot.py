@@ -198,7 +198,7 @@ def item_save(driver, wait, item):
     desc_path = str(item_path / "desc.txt")
     logging.info("Save content to {path}".format(path=desc_path))
     desc = desc_root.find_element_by_css_selector("div.content").text
-    with open(desct_path, mode="w") as f:
+    with open(desc_path, mode="w") as f:
         f.write(desc)
 
     info_path = str(item_path / "info.yaml")
