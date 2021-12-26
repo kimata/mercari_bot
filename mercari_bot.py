@@ -287,6 +287,8 @@ def item_price_down(driver, wait, name, total_price):
     )
 
 
+os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+
 logger_init()
 
 logging.info("開始します．")
