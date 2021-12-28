@@ -19,6 +19,13 @@ pip3 install chromedriver-binary==95.0.4638.69.0
 `chromedriver-binary` のバージョンを指定しているのは，
 現時点('21/12/26)だと最新バージョンにバグがあるためです．
 
+## 設定
+
+ログイン情報や値下げ内容を `config.yml` で指定します．
+
+`config.yml.example` を名前変更して設定してください．
+設定方法方はファイルを見ていただけばわかると思います．
+
 ## 実行方法
 
 `./mercari_bot.py`
