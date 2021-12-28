@@ -1,2 +1,6 @@
 user: メールアドレス
 pass: パスワード
+
+price:
+    down_step: 100      # 1回あたりの値下げ幅〔円〕
+    threshold: 3000     # 値下げを止める価格〔円〕

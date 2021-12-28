@@ -31,8 +31,6 @@ LOGIN_URL = "https://jp.mercari.com"
 CONFIG_PATH = "config.yml"
 LOG_PATH = "log"
 CHROME_DATA_PATH = "chrome_data"
-PRICE_DOWN_STEP = 100
-PRICE_THRESHOLD = 3000
 DUMP_PATH = "debug"
 DATA_PATH = "data"
 LOG_FORMAT = (
@@ -175,7 +173,7 @@ def create_driver():
     return driver
 
 
-def item_save(driver, wait, item):
+def item_save(driver, wait, config, item):
     logging.info("出品情報の保存を行います．")
     item_path = pathlib.Path(DATA_PATH) / item["id"]
     os.makedirs(str(item_path), exist_ok=True)
@@ -215,9 +213,11 @@ def item_save(driver, wait, item):
         )
 
 
-def item_price_down(driver, wait, item):
-    logging.info("{down_step}円の値下げを行います．".format(down_step=PRICE_DOWN_STEP))
-    if item["price"] < PRICE_THRESHOLD:
+def item_price_down(driver, wait, config, item):
+    logging.info(
+        "{down_step}円の値下げを行います．".format(down_step=config["price"]["down_step"])
+    )
+    if item["price"] < config["price"]["threshold"]:
         logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
         return
 
@@ -240,7 +240,7 @@ def item_price_down(driver, wait, item):
 
     price = item["price"] - shipping_fee
 
-    if price < PRICE_THRESHOLD:
+    if price < config["price"]["threshold"]:
         logging.info(
             "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
                 price=price, shipping=shipping_fee
@@ -254,7 +254,7 @@ def item_price_down(driver, wait, item):
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
-    new_price = int((price - PRICE_DOWN_STEP) / 10) * 10  # 10円単位に丸める
+    new_price = int((price - config["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.CONTROL + "a")
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.BACK_SPACE)
     driver.find_element_by_xpath('//input[@name="price"]').send_keys(new_price)
@@ -313,7 +313,7 @@ def parse_item(driver, index):
     return {"id": item_id, "name": name, "price": price, "view": view}
 
 
-def iter_items_on_display(driver, wait, item_func_list):
+def iter_items_on_display(driver, wait, config, item_func_list):
     click_xpath(driver, '//mer-text[contains(text(), "アカウント")]')
     click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
 
@@ -350,7 +350,7 @@ def iter_items_on_display(driver, wait, item_func_list):
         wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
 
         for item_func in item_func_list:
-            item_func(driver, wait, item)
+            item_func(driver, wait, cofnig, item)
 
         random_sleep(4)
         driver.get(list_url)
@@ -374,7 +374,7 @@ wait = WebDriverWait(driver, 5)
 
 try:
     login(driver, wait, config)
-    iter_items_on_display(driver, wait, [item_save, item_price_down])
+    iter_items_on_display(driver, wait, config, [item_save, item_price_down])
 except:
     logging.error("URL: {url}".format(url=driver.current_url))
     logging.error(traceback.format_exc())
