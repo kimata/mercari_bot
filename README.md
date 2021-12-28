@@ -28,7 +28,9 @@ pip3 install chromedriver-binary==95.0.4638.69.0
 
 ## 実行方法
 
-`./mercari_bot.py`
+```
+./mercari_bot.py
+```
 
 # ライセンス
 
