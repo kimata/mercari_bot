@@ -350,7 +350,7 @@ def iter_items_on_display(driver, wait, config, item_func_list):
         wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
 
         for item_func in item_func_list:
-            item_func(driver, wait, cofnig, item)
+            item_func(driver, wait, config, item)
 
         random_sleep(4)
         driver.get(list_url)
