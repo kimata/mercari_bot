@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # - coding: utf-8 --
-import chromedriver_binary
+from webdriver_manager.chrome import ChromeDriverManager
 import coloredlogs
 import logging
 import logging.handlers
@@ -90,11 +90,6 @@ def click_xpath(driver, xpath, wait=None):
     driver.find_element_by_xpath(xpath).click()
 
 
-def expand_shadow_element(driver, element):
-    shadow_root = driver.execute_script("return arguments[0].shadowRoot", element)
-    return shadow_root
-
-
 def dump_page(driver, index):
     name = inspect.stack()[1].function.replace("<", "").replace(">", "")
     dump_path = pathlib.Path(DUMP_PATH)
@@ -168,7 +163,7 @@ def create_driver():
     )
     options.add_argument("--user-data-dir=" + get_abs_path(CHROME_DATA_PATH))
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
     return driver
 
@@ -189,13 +184,11 @@ def item_save(driver, wait, config, item):
             urllib.request.urlretrieve(thumb_url, str(thumb_path))
             random_sleep(1)
 
-    desc_root = expand_shadow_element(
-        driver, driver.find_element_by_xpath("//mer-show-more")
-    )
+    desc_root = driver.find_element_by_xpath("//mer-show-more").shadow_root
 
     desc_path = str(item_path / "desc.txt")
     logging.info("Save content to {path}".format(path=desc_path))
-    desc = desc_root.find_element_by_css_selector("div.content").text
+    desc = desc_root.find_element(By.CSS_SELECTOR, "div.content").text
 
     shipping = driver.find_element_by_xpath('//span[@data-testid="配送の方法"]').text.split(
         "\n"
@@ -279,14 +272,12 @@ def item_price_down(driver, wait, config, item):
 
 
 def parse_item(driver, index):
-    item_root = expand_shadow_element(
-        driver,
-        driver.find_element_by_xpath(
-            '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
-            + str(index)
-            + "]//mer-item-object"
-        ),
-    )
+    item_root = driver.find_element_by_xpath(
+        '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
+        + str(index)
+        + "]//mer-item-object"
+    ).shadow_root
+
     item_url = driver.find_element_by_xpath(
         '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
         + str(index)
@@ -294,17 +285,17 @@ def parse_item(driver, index):
     ).get_attribute("href")
     item_id = item_url.split("/")[-1]
 
-    name = item_root.find_element_by_css_selector("div.container").get_attribute(
+    name = item_root.find_element(By.CSS_SELECTOR, "div.container").get_attribute(
         "aria-label"
     )
     price = int(
-        item_root.find_element_by_css_selector("mer-price").get_attribute("value")
+        item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value")
     )
 
     try:
         view = int(
-            item_root.find_element_by_css_selector(
-                "mer-icon-eye-outline + span.icon-text"
+            item_root.find_element(
+                By.CSS_SELECTOR, "mer-icon-eye-outline + span.icon-text"
             ).text
         )
     except:

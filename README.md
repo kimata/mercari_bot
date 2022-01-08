@@ -13,11 +13,8 @@
 ```
 sudo apt install python3-selenium
 sudo apt install python3-coloredlogs
-pip3 install chromedriver-binary==95.0.4638.69.0
+pip3 install webdriver-manager
 ```
-
-`chromedriver-binary` のバージョンを指定しているのは，
-現時点('21/12/26)だと最新バージョンにバグがあるためです．
 
 ## 設定
 
