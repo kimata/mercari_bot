@@ -87,7 +87,7 @@ def load_config():
 def click_xpath(driver, xpath, wait=None):
     if wait is not None:
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-    driver.find_element_by_xpath(xpath).click()
+    driver.find_element(By.XPATH, xpath).click()
 
 
 def dump_page(driver, index):
@@ -115,16 +115,19 @@ def login(driver, wait, config):
     time.sleep(1)  # NOTE: これを削ると NG になる...
 
     wait.until(
-        lambda x: x.find_elements_by_xpath('//mer-text[contains(text(), "ログイン")]')
-        or x.find_elements_by_xpath('//mer-text[contains(text(), "アカウント")]')
-        or x.find_elements_by_xpath('//button[contains(text(), "はじめる")]')
+        lambda x: x.find_elements(By.XPATH, '//mer-text[contains(text(), "ログイン")]')
+        or x.find_elements(By.XPATH, '//mer-text[contains(text(), "アカウント")]')
+        or x.find_elements(By.XPATH, '//button[contains(text(), "はじめる")]')
     )
 
-    if len(driver.find_elements_by_xpath('//button[contains(text(), "はじめる")]')) != 0:
+    if len(driver.find_elements(By.XPATH, '//button[contains(text(), "はじめる")]')) != 0:
         click_xpath(driver, '//button[contains(text(), "はじめる")]')
 
     # NOTE: 「アカウント」がある場合は，ログイン済み
-    if len(driver.find_elements_by_xpath('//mer-text[contains(text(), "アカウント")]')) != 0:
+    if (
+        len(driver.find_elements(By.XPATH, '//mer-text[contains(text(), "アカウント")]'))
+        != 0
+    ):
         return
 
     click_xpath(driver, '//mer-text[contains(text(), "ログイン")]', wait)
@@ -134,8 +137,8 @@ def login(driver, wait, config):
         EC.presence_of_element_located((By.XPATH, '//mer-heading[@title-label="ログイン"]'))
     )
 
-    driver.find_element_by_xpath('//input[@name="email"]').send_keys(config["user"])
-    driver.find_element_by_xpath('//input[@name="password"]').send_keys(config["pass"])
+    driver.find_element(By.XPATH, '//input[@name="email"]').send_keys(config["user"])
+    driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(config["pass"])
     click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
     wait.until(
@@ -145,7 +148,7 @@ def login(driver, wait, config):
     )
 
     code = input("認証番号: ")
-    driver.find_element_by_xpath('//input[@name="code"]').send_keys(code)
+    driver.find_element(By.XPATH, '//input[@name="code"]').send_keys(code)
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
 
     wait.until(
@@ -173,7 +176,7 @@ def item_save(driver, wait, config, item):
     item_path = pathlib.Path(DATA_PATH) / item["id"]
     os.makedirs(str(item_path), exist_ok=True)
 
-    thumb_elem_list = driver.find_elements_by_xpath("//mer-item-thumbnail")
+    thumb_elem_list = driver.find_elements(By.XPATH, "//mer-item-thumbnail")
     for i, thumb_elem in enumerate(thumb_elem_list[: len(thumb_elem_list) // 2]):
         thumb_url = thumb_elem.get_attribute("src")
         thumb_path = item_path / (str(i) + ".jpg")
@@ -184,13 +187,13 @@ def item_save(driver, wait, config, item):
             urllib.request.urlretrieve(thumb_url, str(thumb_path))
             random_sleep(1)
 
-    desc_root = driver.find_element_by_xpath("//mer-show-more").shadow_root
+    desc_root = driver.find_element(By.XPATH, "//mer-show-more").shadow_root
 
     desc_path = str(item_path / "desc.txt")
     logging.info("Save content to {path}".format(path=desc_path))
     desc = desc_root.find_element(By.CSS_SELECTOR, "div.content").text
 
-    shipping = driver.find_element_by_xpath('//span[@data-testid="配送の方法"]').text.split(
+    shipping = driver.find_element(By.XPATH, '//span[@data-testid="配送の方法"]').text.split(
         "\n"
     )[0]
 
@@ -220,12 +223,12 @@ def item_price_down(driver, wait, config, item):
 
     # NOTE: 梱包・発送たのメル便の場合は送料を取得
     if (
-        len(driver.find_elements_by_xpath('//mer-price[@data-testid="shipping-fee"]'))
+        len(driver.find_elements(By.XPATH, '//mer-price[@data-testid="shipping-fee"]'))
         != 0
     ):
         shipping_fee = int(
-            driver.find_element_by_xpath(
-                '//mer-price[@data-testid="shipping-fee"]'
+            driver.find_element(
+                By.XPATH, '//mer-price[@data-testid="shipping-fee"]'
             ).get_attribute("value")
         )
     else:
@@ -242,15 +245,17 @@ def item_price_down(driver, wait, config, item):
         return
 
     cur_price = int(
-        driver.find_element_by_xpath('//input[@name="price"]').get_attribute("value")
+        driver.find_element(By.XPATH, '//input[@name="price"]').get_attribute("value")
     )
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
     new_price = int((price - config["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
-    driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.CONTROL + "a")
-    driver.find_element_by_xpath('//input[@name="price"]').send_keys(Keys.BACK_SPACE)
-    driver.find_element_by_xpath('//input[@name="price"]').send_keys(new_price)
+    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(
+        Keys.CONTROL + "a"
+    )
+    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.BACK_SPACE)
+    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(new_price)
     click_xpath(driver, '//button[contains(text(), "変更する")]')
 
     wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
@@ -258,7 +263,7 @@ def item_price_down(driver, wait, config, item):
     wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
 
     new_total_price = int(
-        driver.find_element_by_xpath("//mer-price").get_attribute("value")
+        driver.find_element(By.XPATH, "//mer-price").get_attribute("value")
     )
 
     if new_total_price != (new_price + shipping_fee):
@@ -272,16 +277,18 @@ def item_price_down(driver, wait, config, item):
 
 
 def parse_item(driver, index):
-    item_root = driver.find_element_by_xpath(
+    item_root = driver.find_element(
+        By.XPATH,
         '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
         + str(index)
-        + "]//mer-item-object"
+        + "]//mer-item-object",
     ).shadow_root
 
-    item_url = driver.find_element_by_xpath(
+    item_url = driver.find_element(
+        By.XPATH,
         '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
         + str(index)
-        + "]//a"
+        + "]//a",
     ).get_attribute("href")
     item_id = item_url.split("/")[-1]
 
@@ -315,8 +322,8 @@ def iter_items_on_display(driver, wait, config, item_func_list):
     )
 
     item_count = len(
-        driver.find_elements_by_xpath(
-            '//mer-list[@data-testid="listed-item-list"]/mer-list-item'
+        driver.find_elements(
+            By.XPATH, '//mer-list[@data-testid="listed-item-list"]/mer-list-item'
         )
     )
 
@@ -332,10 +339,11 @@ def iter_items_on_display(driver, wait, config, item_func_list):
             )
         )
 
-        driver.find_element_by_xpath(
+        driver.find_element(
+            By.XPATH,
             '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
             + str(i)
-            + "]//a"
+            + "]//a",
         ).click()
 
         wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
