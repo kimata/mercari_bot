@@ -329,7 +329,7 @@ def iter_items_on_display(driver, wait, config, item_func_list):
     logging.info("{item_count}個の出品があります．".format(item_count=item_count))
 
     list_url = driver.current_url
-    for i in range(1, item_count):
+    for i in range(1, item_count + 1):
         item = parse_item(driver, i)
 
         logging.info(
