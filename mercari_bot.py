@@ -115,19 +115,16 @@ def login(driver, wait, config):
     time.sleep(1)  # NOTE: これを削ると NG になる...
 
     wait.until(
-        lambda x: x.find_elements(By.XPATH, '//mer-text[contains(text(), "ログイン")]')
-        or x.find_elements(By.XPATH, '//mer-text[contains(text(), "アカウント")]')
-        or x.find_elements(By.XPATH, '//button[contains(text(), "はじめる")]')
+        EC.presence_of_element_located((By.XPATH, "//mer-navigation-top-menu-item"))
     )
 
     if len(driver.find_elements(By.XPATH, '//button[contains(text(), "はじめる")]')) != 0:
         click_xpath(driver, '//button[contains(text(), "はじめる")]')
 
-    # NOTE: 「アカウント」がある場合は，ログイン済み
-    if (
-        len(driver.find_elements(By.XPATH, '//mer-text[contains(text(), "アカウント")]'))
-        != 0
-    ):
+    menu_label = driver.find_elements(
+        By.XPATH, "//mer-menu/mer-navigation-top-menu-item/span"
+    )[0].text
+    if menu_label == "アカウント":
         return
 
     click_xpath(driver, '//mer-text[contains(text(), "ログイン")]', wait)
@@ -312,7 +309,9 @@ def parse_item(driver, index):
 
 
 def iter_items_on_display(driver, wait, config, item_func_list):
-    click_xpath(driver, '//mer-text[contains(text(), "アカウント")]')
+    click_xpath(
+        driver, '//mer-navigation-top-menu-item/span[contains(text(), "アカウント")]'
+    )
     click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
 
     wait.until(
