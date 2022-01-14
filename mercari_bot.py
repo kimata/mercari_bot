@@ -123,11 +123,13 @@ def login(driver, wait, config):
 
     menu_label = driver.find_elements(
         By.XPATH, "//mer-menu/mer-navigation-top-menu-item/span"
-    )[0].text
-    if menu_label == "アカウント":
+    )
+    if (len(menu_label) != 0) and (menu_label[0].text == "アカウント"):
         return
 
-    click_xpath(driver, '//mer-text[contains(text(), "ログイン")]', wait)
+    click_xpath(
+        driver, '//mer-navigation-top-menu-item/span[contains(text(), "ログイン")]', wait
+    )
     click_xpath(driver, '//span[contains(text(), "メールアドレスでログイン")]', wait)
 
     wait.until(
@@ -149,7 +151,12 @@ def login(driver, wait, config):
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
 
     wait.until(
-        EC.element_to_be_clickable((By.XPATH, '//mer-text[contains(text(), "アカウント")]'))
+        EC.element_to_be_clickable(
+            (
+                By.XPATH,
+                '//mer-menu/mer-navigation-top-menu-item/span[contains(text(), "アカウント")]',
+            )
+        )
     )
 
 
