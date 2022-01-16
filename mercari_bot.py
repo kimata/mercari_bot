@@ -217,6 +217,10 @@ def item_price_down(driver, wait, config, item):
     logging.info(
         "{down_step}円の値下げを行います．".format(down_step=config["price"]["down_step"])
     )
+    if item["is_stop"] != 0:
+        logging.info("公開停止中のため，スキップします．")
+        return
+
     if item["price"] < config["price"]["threshold"]:
         logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
         return
@@ -302,6 +306,9 @@ def parse_item(driver, index):
     price = int(
         item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value")
     )
+    is_stop = 0
+    if len(item_root.find_elements(By.CSS_SELECTOR, "div.content > mer-text")) != 0:
+        is_stop = 1
 
     try:
         view = int(
@@ -312,7 +319,13 @@ def parse_item(driver, index):
     except:
         view = 0
 
-    return {"id": item_id, "name": name, "price": price, "view": view}
+    return {
+        "id": item_id,
+        "name": name,
+        "price": price,
+        "view": view,
+        "is_stop": is_stop,
+    }
 
 
 def iter_items_on_display(driver, wait, config, item_func_list):
