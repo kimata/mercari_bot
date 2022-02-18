@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
@@ -358,12 +359,17 @@ def iter_items_on_display(driver, wait, config, item_func_list):
             )
         )
 
-        driver.find_element(
+        driver.execute_script("window.scrollTo(0, 0);")
+        item_link = driver.find_element(
             By.XPATH,
             '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
             + str(i)
             + "]//a",
-        ).click()
+        )
+        # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
+        item_link.location_once_scrolled_into_view
+        driver.execute_script("window.scrollTo(0, window.pageYOffset - 200);")
+        item_link.click()
 
         wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
 
