@@ -91,6 +91,19 @@ def click_xpath(driver, xpath, wait=None):
     driver.find_element(By.XPATH, xpath).click()
 
 
+def get_memory_info(driver):
+    total = subprocess.Popen(
+        "smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE
+    ).communicate()[0]
+    total = int(str(total, "utf-8").strip()) // 1024
+
+    js_heap = driver.execute_script(
+        "return window.performance.memory.usedJSHeapSize"
+    ) // (1024 * 1024)
+
+    return {"total": total, "js_heap": js_heap}
+
+
 def dump_page(driver, index):
     name = inspect.stack()[1].function.replace("<", "").replace(">", "")
     dump_path = pathlib.Path(DUMP_PATH)
@@ -399,6 +412,13 @@ wait = WebDriverWait(driver, 5)
 try:
     login(driver, wait, config)
     iter_items_on_display(driver, wait, config, [item_save, item_price_down])
+
+    mem_info = get_memory_info(driver)
+    logging.info(
+        "Chrome memory: {memory_total:,} MB (JS: {memory_js_heap:,} MB)".format(
+            memory_total=mem_info["total"], memory_js_heap=mem_info["js_heap"]
+        )
+    )
 except:
     logging.error("URL: {url}".format(url=driver.current_url))
     logging.error(traceback.format_exc())
