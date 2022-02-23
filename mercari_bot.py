@@ -344,7 +344,7 @@ def parse_item(driver, index):
 
 def iter_items_on_display(driver, wait, config, item_func_list):
     click_xpath(
-        driver, '//mer-navigation-top-menu-item/span[contains(text(), "アカウント")]'
+        driver, '//mer-navigation-top-menu-item/span[contains(text(), "アカウント")]', wait
     )
     click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
 
