@@ -7,6 +7,7 @@ import logging.handlers
 import io
 import bz2
 import inspect
+import subprocess
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
