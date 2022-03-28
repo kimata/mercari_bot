@@ -127,7 +127,7 @@ def dump_page(driver, index):
 def login(driver, wait, config):
     driver.get(LOGIN_URL)
 
-    time.sleep(1)  # NOTE: これを削ると NG になる...
+    time.sleep(3)  # NOTE: この時間を削ると NG になることがある...
 
     wait.until(
         EC.presence_of_element_located((By.XPATH, "//mer-navigation-top-menu-item"))
