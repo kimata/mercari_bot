@@ -285,12 +285,21 @@ def item_price_down(driver, wait, config, item):
 
     wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
 
+    # NOTE: 価格更新が反映されていない場合があるので，再度ページを取得する
+    time.sleep(3)
+    driver.get(driver.current_url)
+    wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
+
     new_total_price = int(
         driver.find_element(By.XPATH, "//mer-price").get_attribute("value")
     )
 
     if new_total_price != (new_price + shipping_fee):
-        raise RuntimeError("編集後の価格が意図したものと異なっています．")
+        raise RuntimeError(
+            "編集後の価格が意図したものと異なっています．(期待値: {exp:,}円, 実際: {act:,}円)".format(
+                exp=new_price + shipping_fee, act=new_total_price
+            )
+        )
 
     logging.info(
         "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(
