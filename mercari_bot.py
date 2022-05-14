@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # - coding: utf-8 --
-from webdriver_manager.chrome import ChromeDriverManager
 import coloredlogs
 import logging
 import logging.handlers
@@ -185,7 +184,9 @@ def create_driver():
     )
     options.add_argument("--user-data-dir=" + get_abs_path(CHROME_DATA_PATH))
 
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    import chromedriver_binary
+
+    driver = webdriver.Chrome(options=options)
 
     return driver
 
