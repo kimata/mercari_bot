@@ -11,9 +11,13 @@
 必要なモジュールをインストールします．
 
 ```
-sudo apt install python3-selenium
-sudo apt install python3-coloredlogs
-pip3 install webdriver-manager
+sudo apt install -y python3-coloredlogs
+sudo apt install -y python3-pip
+sudo apt install -y smem
+
+pip3 install selenium
+pip3 install amazon-paapi5
+pip3 install chromedriver-binary-auto
 ```
 
 ## 設定
