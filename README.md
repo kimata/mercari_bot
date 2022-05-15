@@ -11,6 +11,7 @@
 必要なモジュールをインストールします．
 
 ```
+sudo apt install -y chromium-browser
 sudo apt install -y python3-coloredlogs
 sudo apt install -y python3-pip
 sudo apt install -y smem
