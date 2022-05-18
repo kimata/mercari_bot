@@ -424,7 +424,7 @@ wait = WebDriverWait(driver, 5)
 
 try:
     login(driver, wait, config)
-    iter_items_on_display(driver, wait, config, [item_save, item_price_down])
+    iter_items_on_display(driver, wait, config, [item_price_down])
 
     mem_info = get_memory_info(driver)
     logging.info(
