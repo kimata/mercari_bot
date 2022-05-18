@@ -144,13 +144,15 @@ def login(driver, wait, config):
     click_xpath(
         driver, '//mer-navigation-top-menu-item/span[contains(text(), "ログイン")]', wait
     )
-    click_xpath(driver, '//span[contains(text(), "メールアドレスでログイン")]', wait)
+    click_xpath(driver, '//span[contains(text(), "メール・電話番号でログイン")]', wait)
 
     wait.until(
         EC.presence_of_element_located((By.XPATH, '//mer-heading[@title-label="ログイン"]'))
     )
 
-    driver.find_element(By.XPATH, '//input[@name="email"]').send_keys(config["user"])
+    driver.find_element(By.XPATH, '//input[@name="emailOrPhone"]').send_keys(
+        config["user"]
+    )
     driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(config["pass"])
     click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
