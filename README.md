@@ -24,6 +24,8 @@ pip3 install amazon-paapi5
 pip3 install chromedriver-binary-auto
 ```
 
+後述する Docker を使った方法で実行する場合は，インストール不要です．
+
 ## 設定
 
 ログイン情報や値下げ内容を `config.yml` で指定します．
@@ -35,6 +37,13 @@ pip3 install chromedriver-binary-auto
 
 ```
 ./mercari_bot.py
+```
+
+Docker で実行する場合，下記のようにします．
+
+```bash:bash
+docker build . -t mercari_bot
+docker run -it mercari_bot
 ```
 
 # ライセンス
