@@ -3,7 +3,6 @@
 import coloredlogs
 import logging
 import logging.handlers
-import io
 import bz2
 import inspect
 import subprocess
@@ -14,17 +13,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome import service
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
 import sys
 import random
-import inspect
 import re
 
 import yaml
-import pprint
 import pathlib
 import traceback
 import urllib.request
