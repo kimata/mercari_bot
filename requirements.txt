@@ -1,0 +1,3 @@
+selenium
+amazon-paapi5
+chromedriver-binary-auto

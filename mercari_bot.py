@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome import service
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 import time
@@ -179,8 +180,10 @@ def login(driver, wait, config):
 def create_driver():
     options = Options()
     options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
     options.add_argument("--lang=ja-JP")
     options.add_argument("--window-size=1920,1080")
+
     options.add_argument(
         '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"'
     )
@@ -188,7 +191,10 @@ def create_driver():
 
     import chromedriver_binary
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(
+        options=options,
+        # service=service.Service(log_path="./driver.log"),
+    )
 
     return driver
 
