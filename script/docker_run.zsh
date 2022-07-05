@@ -7,4 +7,4 @@ set -e
 cd $(dirname $(dirname $0))
 
 docker build --quiet . -t ${APP_NAME}
-docker run --rm -it ${APP_NAME}
+docker run --rm ${APP_NAME}
