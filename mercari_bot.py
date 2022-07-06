@@ -12,13 +12,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome import service
+
+
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.utils import ChromeType
+
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
 import sys
 import random
 import re
+import shutil
 
 import yaml
 import pathlib
@@ -181,15 +187,22 @@ def create_driver():
     options.add_argument("--window-size=1920,1080")
 
     options.add_argument(
-        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"'
+        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36"'
     )
     options.add_argument("--user-data-dir=" + get_abs_path(CHROME_DATA_PATH))
 
-    import chromedriver_binary
+    # NOTE: 下記がないと，snap で入れた chromium が「LC_ALL: cannot change locale (ja_JP.UTF-8)」
+    # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
+    os.environ["LC_ALL"] = "C"
+
+    if shutil.which("google-chrome") is not None:
+        chrome_type = ChromeType.GOOGLE
+    else:
+        chrome_type = ChromeType.CHROMIUM
 
     driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager(chrome_type=chrome_type).install()),
         options=options,
-        # service=service.Service(log_path="./driver.log"),
     )
 
     return driver

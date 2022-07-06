@@ -20,6 +20,7 @@ sudo apt install -y chromium-browser
 sudo snap install chromium
 
 pip3 install selenium
+pip3 install webdriver-manager
 ```
 
 後述する Docker を使った方法で実行する場合は，インストール不要です．
