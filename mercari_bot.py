@@ -13,7 +13,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 
-
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.utils import ChromeType
@@ -182,7 +181,9 @@ def login(driver, wait, config):
 def create_driver():
     options = Options()
     options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
+    options.add_argument("--no-sandbox")  # for Docker
+    options.add_argument("--disable-dev-shm-usage")  # for Docker
+
     options.add_argument("--lang=ja-JP")
     options.add_argument("--window-size=1920,1080")
 
