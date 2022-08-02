@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # - coding: utf-8 --
-import coloredlogs
 import logging
 import logging.handlers
-import bz2
 import inspect
 import subprocess
 
@@ -25,53 +23,28 @@ import random
 import re
 import shutil
 
-import yaml
 import pathlib
 import traceback
 import urllib.request
 
+import logger
+import notifier
+from config import load_config
+
 LOGIN_URL = "https://jp.mercari.com"
-CONFIG_PATH = "config.yml"
-LOG_PATH = "log"
-CHROME_DATA_PATH = "chrome_data"
-DUMP_PATH = "debug"
-DATA_PATH = "data"
-LOG_FORMAT = (
-    "%(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
-)
 
+DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
+LOG_PATH = DATA_PATH / "log"
 
-class GZipRotator:
-    def namer(name):
-        return name + ".bz2"
+CHROME_DATA_PATH = str(DATA_PATH / "chrome")
+RECORD_PATH = str(DATA_PATH / "record")
+DUMP_PATH = str(DATA_PATH / "deubg")
 
-    def rotator(source, dest):
-        with open(source, "rb") as fs:
-            with bz2.open(dest, "wb") as fd:
-                fd.writelines(fs)
-        os.remove(source)
+DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
+HIST_CSV_PATH = str(LOG_PATH / "history.csv")
 
-
-def logger_init():
-    coloredlogs.install(fmt=LOG_FORMAT)
-
-    log_path = pathlib.Path(LOG_PATH)
-    os.makedirs(str(log_path), exist_ok=True)
-
-    logger = logging.getLogger()
-    log_handler = logging.handlers.RotatingFileHandler(
-        str(log_path / "mercari_bot.log"),
-        encoding="utf8",
-        maxBytes=1 * 1024 * 1024,
-        backupCount=10,
-    )
-    log_handler.formatter = logging.Formatter(
-        fmt=LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"
-    )
-    log_handler.namer = GZipRotator.namer
-    log_handler.rotator = GZipRotator.rotator
-
-    logger.addHandler(log_handler)
+# NOTE: True にすると，最初のアイテムだけ処理され，価格変更も行われない
+DEBUG = False
 
 
 def random_sleep(sec):
@@ -80,11 +53,6 @@ def random_sleep(sec):
 
 def get_abs_path(path):
     return str(pathlib.Path(os.path.dirname(__file__), path))
-
-
-def load_config():
-    with open(get_abs_path(CONFIG_PATH)) as file:
-        return yaml.safe_load(file)
 
 
 def click_xpath(driver, xpath, wait=None):
@@ -192,7 +160,7 @@ def create_driver():
     options.add_argument(
         '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36"'
     )
-    options.add_argument("--user-data-dir=" + get_abs_path(CHROME_DATA_PATH))
+    options.add_argument("--user-data-dir=" + CHROME_DATA_PATH)
 
     # NOTE: 下記がないと，snap で入れた chromium が「LC_ALL: cannot change locale (ja_JP.UTF-8)」
     # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
@@ -204,7 +172,11 @@ def create_driver():
         chrome_type = ChromeType.CHROMIUM
 
     driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager(chrome_type=chrome_type).install()),
+        service=Service(
+            ChromeDriverManager(chrome_type=chrome_type).install(),
+            log_path=DRIVER_LOG_PATH,
+            service_args=["--verbose"],
+        ),
         options=options,
     )
 
@@ -213,7 +185,7 @@ def create_driver():
 
 def item_save(driver, wait, config, item):
     logging.info("出品情報の保存を行います．")
-    item_path = pathlib.Path(DATA_PATH) / item["id"]
+    item_path = pathlib.Path(RECORD_PATH) / item["id"]
     os.makedirs(str(item_path), exist_ok=True)
 
     thumb_elem_list = driver.find_elements(By.XPATH, "//mer-item-thumbnail")
@@ -294,7 +266,11 @@ def item_price_down(driver, wait, config, item):
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
-    new_price = int((price - config["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
+    if not DEBUG:
+        new_price = int((price - config["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
+    else:
+        new_price = price
+
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(
         Keys.CONTROL + "a"
     )
@@ -428,12 +404,15 @@ def iter_items_on_display(driver, wait, config, item_func_list):
             )
         )
 
+        if DEBUG:
+            break
+
 
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
-logger_init()
+log_str_io = logger.init("Mercari Bot", True)
 
-logging.info("開始します．")
+logging.info("Start.")
 
 config = load_config()
 driver = create_driver()
@@ -458,4 +437,6 @@ except:
 driver.close()
 driver.quit()
 
-logging.info("完了しました．")
+logging.info("Finish.")
+
+notifier.send(config, "<br />".join(log_str_io.getvalue().splitlines()), False)

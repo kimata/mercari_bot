@@ -23,4 +23,4 @@ USER ubuntu
 
 COPY --chown=ubuntu . .
 
-CMD ["./mercari_bot.py"]
+CMD ["./src/mercari_bot.py"]
