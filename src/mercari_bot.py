@@ -418,6 +418,7 @@ config = load_config()
 driver = create_driver()
 
 wait = WebDriverWait(driver, 5)
+ret_code = -1
 
 try:
     login(driver, wait, config)
@@ -429,6 +430,8 @@ try:
             memory_total=mem_info["total"], memory_js_heap=mem_info["js_heap"]
         )
     )
+    logging.info("Finish.")
+    ret_code = 0
 except:
     logging.error("URL: {url}".format(url=driver.current_url))
     logging.error(traceback.format_exc())
@@ -437,6 +440,6 @@ except:
 driver.close()
 driver.quit()
 
-logging.info("Finish.")
-
 notifier.send(config, "<br />".join(log_str_io.getvalue().splitlines()), False)
+
+sys.exit(ret_code)
