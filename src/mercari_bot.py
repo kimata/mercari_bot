@@ -93,7 +93,7 @@ def dump_page(driver, index):
         f.write(driver.page_source)
 
 
-def login(driver, wait, config):
+def login_impl(driver, wait, config):
     driver.get(LOGIN_URL)
 
     time.sleep(3)  # NOTE: この時間を削ると NG になることがある...
@@ -146,6 +146,16 @@ def login(driver, wait, config):
             )
         )
     )
+
+
+def login(driver, wait, config):
+    try:
+        login_impl(driver, wait, config)
+    except:
+        # NOTE: 1回だけリトライする
+        time.sleep(10)
+        login_impl(driver, wait, config)
+        pass
 
 
 def create_driver():
