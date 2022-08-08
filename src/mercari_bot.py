@@ -153,6 +153,7 @@ def login(driver, wait, config):
         login_impl(driver, wait, config)
     except:
         # NOTE: 1回だけリトライする
+        logging.error("ログインをリトライします．")
         time.sleep(10)
         login_impl(driver, wait, config)
         pass
