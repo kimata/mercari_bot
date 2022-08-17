@@ -159,7 +159,7 @@ def login(driver, wait, config):
         pass
 
 
-def create_driver():
+def create_driver_impl():
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")  # for Docker
@@ -192,6 +192,14 @@ def create_driver():
     )
 
     return driver
+
+
+def create_driver():
+    # NOTE: 1回だけ自動リトライ
+    try:
+        return create_driver_impl()
+    except:
+        return create_driver_impl()
 
 
 def item_save(driver, wait, config, item):
