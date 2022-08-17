@@ -94,9 +94,8 @@ def dump_page(driver, index):
 
 
 def login_impl(driver, wait, config):
+    logging.info("ログインを行います．")
     driver.get(LOGIN_URL)
-
-    time.sleep(3)  # NOTE: この時間を削ると NG になることがある...
 
     wait.until(
         EC.presence_of_element_located((By.XPATH, "//mer-navigation-top-menu-item"))
@@ -109,11 +108,13 @@ def login_impl(driver, wait, config):
         By.XPATH, "//mer-menu/mer-navigation-top-menu-item/span"
     )
     if (len(menu_label) != 0) and (menu_label[0].text == "アカウント"):
+        logging.info("既にログイン済みでした．")
         return
 
     click_xpath(
         driver, '//mer-navigation-top-menu-item/span[contains(text(), "ログイン")]', wait
     )
+    logging.info("メール・電話番号でログインします．")
     click_xpath(driver, '//span[contains(text(), "メール・電話番号でログイン")]', wait)
 
     wait.until(
@@ -132,6 +133,7 @@ def login_impl(driver, wait, config):
         )
     )
 
+    logging.info("認証番号の入力を待ちます．")
     code = input("認証番号: ")
     driver.find_element(By.XPATH, '//input[@name="code"]').send_keys(code)
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
@@ -146,6 +148,7 @@ def login_impl(driver, wait, config):
             )
         )
     )
+    logging.info("ログインに成功しました．")
 
 
 def login(driver, wait, config):
