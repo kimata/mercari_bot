@@ -162,6 +162,16 @@ def login(driver, wait, config):
         pass
 
 
+def warmup(driver):
+    logging.info("ウォームアップを行います．")
+
+    # NOTE: 自動処理の最初の方にエラーが発生することが多いので，事前にアクセスしておく
+    driver.get(LOGIN_URL)
+    time.sleep(3)
+    driver.refresh()
+    time.sleep(3)
+
+
 def create_driver_impl():
     options = Options()
     options.add_argument("--headless")
@@ -443,6 +453,8 @@ wait = WebDriverWait(driver, 5)
 ret_code = -1
 
 try:
+    warmup(driver)
+
     login(driver, wait, config)
     iter_items_on_display(driver, wait, config, [item_price_down])
 
