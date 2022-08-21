@@ -22,6 +22,7 @@ import sys
 import random
 import re
 import shutil
+import yaml
 
 import pathlib
 import traceback
@@ -257,6 +258,7 @@ def item_price_down(driver, wait, config, item):
     logging.info(
         "{down_step}円の値下げを行います．".format(down_step=config["price"]["down_step"])
     )
+
     if item["is_stop"] != 0:
         logging.info("公開停止中のため，スキップします．")
         return
