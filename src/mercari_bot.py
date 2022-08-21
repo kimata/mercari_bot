@@ -269,6 +269,12 @@ def item_price_down(driver, wait, config, item):
 
     click_xpath(driver, '//mer-button[@data-testid="checkout-button"]')
     wait.until(EC.title_contains("商品の情報を編集"))
+
+    # NOTE: 食品などの場合，「出品情報の確認」の表示が出るので，「OK」ボタンを押す
+    if len(driver.find_elements(By.XPATH, '//button[contains(text(), "OK")]')) != 0:
+        logging.info("「出品情報の確認」を閉じます")
+        click_xpath(driver, '//button[contains(text(), "OK")]')
+
     wait.until(EC.presence_of_element_located((By.XPATH, '//input[@name="price"]')))
 
     # NOTE: 梱包・発送たのメル便の場合は送料を取得
