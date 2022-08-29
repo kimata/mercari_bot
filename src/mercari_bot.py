@@ -450,7 +450,7 @@ def iter_items_on_display(driver, wait, config, item_func_list):
 
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
-log_str_io = logger.init("Mercari Bot", True)
+log_str_io = logger.init("bot.mercari.inventory", True)
 
 logging.info("Start.")
 

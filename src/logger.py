@@ -7,9 +7,7 @@ import bz2
 import os
 import io
 
-LOG_FORMAT = (
-    "%(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
-)
+LOG_FORMAT = "{name} %(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
 
 
 class GZipRotator:
@@ -24,7 +22,7 @@ class GZipRotator:
 
 
 def init(name, is_str=False):
-    coloredlogs.install(fmt=LOG_FORMAT)
+    coloredlogs.install(fmt=LOG_FORMAT.format(name=name))
 
     if is_str:
         str_io = io.StringIO()
