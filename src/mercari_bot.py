@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException
 
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -35,6 +36,7 @@ from config import load_config
 LOGIN_URL = "https://jp.mercari.com"
 
 WAIT_TIMEOUT_SEC = 10
+WAIT_RETRY_COUNT = 1
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 LOG_PATH = DATA_PATH / "log"
@@ -94,6 +96,19 @@ def dump_page(driver, index):
 
     with open(str(htm_path), "w") as f:
         f.write(driver.page_source)
+
+
+def wait_patiently(driver, wait, target):
+    error = None
+    for _ in range(WAIT_RETRY_COUNT + 1):
+        try:
+            wait.until(target)
+            return
+        except TimeoutException as e:
+            driver.refresh()
+            error = e
+            pass
+    raise error
 
 
 def login_impl(driver, wait, config):
@@ -270,7 +285,7 @@ def item_price_down(driver, wait, config, item):
         return
 
     click_xpath(driver, '//mer-button[@data-testid="checkout-button"]')
-    wait.until(EC.title_contains("商品の情報を編集"))
+    wait_patiently(driver, wait, EC.title_contains("商品の情報を編集"))
 
     # NOTE: 食品などの場合，「出品情報の確認」の表示が出るので，「OK」ボタンを押す
     if len(driver.find_elements(By.XPATH, '//button[contains(text(), "OK")]')) != 0:
@@ -320,9 +335,10 @@ def item_price_down(driver, wait, config, item):
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(new_price)
     click_xpath(driver, '//button[contains(text(), "変更する")]')
 
-    wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
-
-    wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
+    wait_patiently(driver, wait, EC.title_contains(re.sub(" +", " ", item["name"])))
+    wait_patiently(
+        driver, wait, EC.presence_of_element_located((By.XPATH, "//mer-price"))
+    )
 
     # NOTE: 価格更新が反映されていない場合があるので，再度ページを取得する
     time.sleep(3)
