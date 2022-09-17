@@ -34,6 +34,8 @@ from config import load_config
 
 LOGIN_URL = "https://jp.mercari.com"
 
+WAIT_TIMEOUT_SEC = 10
+
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 LOG_PATH = DATA_PATH / "log"
 
@@ -457,7 +459,7 @@ logging.info("Start.")
 config = load_config()
 driver = create_driver()
 
-wait = WebDriverWait(driver, 5)
+wait = WebDriverWait(driver, WAIT_TIMEOUT_SEC)
 ret_code = -1
 
 try:
