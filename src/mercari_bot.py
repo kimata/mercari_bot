@@ -4,6 +4,7 @@ import logging
 import logging.handlers
 import inspect
 import subprocess
+import inspect
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -105,6 +106,13 @@ def wait_patiently(driver, wait, target):
             wait.until(target)
             return
         except TimeoutException as e:
+            logging.warning(
+                "wait timeout: {func} in {file} line {line}".format(
+                    func=inspect.stack()[1].function,
+                    file=inspect.stack()[1].filename,
+                    line=inspect.stack()[1].lineno,
+                )
+            )
             driver.refresh()
             error = e
             pass
