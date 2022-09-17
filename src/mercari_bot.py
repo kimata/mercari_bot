@@ -107,7 +107,7 @@ def wait_patiently(driver, wait, target):
             return
         except TimeoutException as e:
             logging.warning(
-                "wait timeout: {func} in {file} line {line}".format(
+                "タイムアウトが発生しました．({func} in {file} line {line})".format(
                     func=inspect.stack()[1].function,
                     file=inspect.stack()[1].filename,
                     line=inspect.stack()[1].lineno,
