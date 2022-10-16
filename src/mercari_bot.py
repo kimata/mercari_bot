@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8-unix -*-
+# -*- coding: utf-8 -*-
+
 import logging
 import logging.handlers
 import inspect
@@ -159,6 +160,7 @@ def resolve_captcha_img(driver, wait):
         EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]'))
     )
     while True:
+        # NOTE: 問題画像を切り抜いてメールで送信
         notifier.send(
             config,
             "reCAPTCHA",
@@ -173,6 +175,10 @@ def resolve_captcha_img(driver, wait):
             map(lambda elem: elem.get_attribute("tabindex"), tile_list)
         )
 
+        # NOTE: メールを見て人間に選択するべき画像のインデックスを入力してもらう．
+        # インデックスは左上を 0 として横方向に 1, 2, ... とする形．
+        # 入力を簡単にするため，10以上は a, b, ..., g で指定．
+        # 0 は入力の完了を意味する．
         select_str = input("選択タイル(1-9,a-g,end=0): ").strip()
 
         if select_str == "0":
@@ -186,9 +192,9 @@ def resolve_captcha_img(driver, wait):
             ):
                 time.sleep(1)
 
-                if is_display(driver, '//div[contains(text(), "新しい画像も")]'):
-                    continue
-                elif is_display(driver, '//div[contains(text(), "もう一度")]'):
+                if is_display(
+                    driver, '//div[contains(text(), "新しい画像も")]'
+                ) or is_display(driver, '//div[contains(text(), "もう一度")]'):
                     continue
                 else:
                     break
