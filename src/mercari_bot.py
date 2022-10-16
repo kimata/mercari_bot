@@ -12,13 +12,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.action_chains import ActionChains
 
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support import expected_conditions as EC
+
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.utils import ChromeType
 
-from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
 import sys
@@ -31,6 +31,8 @@ import pathlib
 import traceback
 import urllib.request
 
+from selenium_util import click_xpath
+import captcha
 import logger
 import notifier
 from config import load_config
@@ -60,31 +62,6 @@ def random_sleep(sec):
 
 def get_abs_path(path):
     return str(pathlib.Path(os.path.dirname(__file__), path))
-
-
-def click_xpath(driver, xpath, wait=None, move=False, is_warn=True):
-    if wait is not None:
-        wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        time.sleep(0.5)
-
-    if len(driver.find_elements(By.XPATH, xpath)) != 0:
-        elem = driver.find_element(By.XPATH, xpath)
-        action = ActionChains(driver)
-        action.move_to_element(elem)
-        action.perform()
-
-        elem.click()
-        return True
-    else:
-        if is_warn:
-            logging.warning("Element is not found: {xpath}".format(xpath=xpath))
-        return False
-
-
-def is_display(driver, xpath):
-    return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (
-        driver.find_element(By.XPATH, xpath).is_displayed()
-    )
 
 
 def get_memory_info(driver):
@@ -139,91 +116,6 @@ def wait_patiently(driver, wait, target):
     raise error
 
 
-def resolve_captcha_img(driver, wait):
-    wait.until(
-        EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH, '//iframe[@title="reCAPTCHA"]')
-        )
-    )
-    click_xpath(
-        driver,
-        '//span[contains(@class, "recaptcha-checkbox")]',
-        move=True,
-    )
-    driver.switch_to.default_content()
-    wait.until(
-        EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]')
-        )
-    )
-    wait.until(
-        EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]'))
-    )
-    while True:
-        # NOTE: 問題画像を切り抜いてメールで送信
-        notifier.send(
-            config,
-            "reCAPTCHA",
-            png_data=driver.find_element(By.XPATH, "//body").screenshot_as_png,
-            is_force=True,
-        )
-        tile_list = driver.find_elements(
-            By.XPATH,
-            '//table[contains(@class, "rc-imageselect-table")]//td[@role="button"]',
-        )
-        tile_idx_list = list(
-            map(lambda elem: elem.get_attribute("tabindex"), tile_list)
-        )
-
-        # NOTE: メールを見て人間に選択するべき画像のインデックスを入力してもらう．
-        # インデックスは左上を 0 として横方向に 1, 2, ... とする形．
-        # 入力を簡単にするため，10以上は a, b, ..., g で指定．
-        # 0 は入力の完了を意味する．
-        select_str = input("選択タイル(1-9,a-g,end=0): ").strip()
-
-        if select_str == "0":
-            if click_xpath(
-                driver, '//button[contains(text(), "スキップ")]', move=True, is_warn=False
-            ):
-                time.sleep(1)
-                continue
-            elif click_xpath(
-                driver, '//button[contains(text(), "確認")]', move=True, is_warn=False
-            ):
-                time.sleep(1)
-
-                if is_display(
-                    driver, '//div[contains(text(), "新しい画像も")]'
-                ) or is_display(driver, '//div[contains(text(), "もう一度")]'):
-                    continue
-                else:
-                    break
-            else:
-                click_xpath(
-                    driver, '//button[contains(text(), "次へ")]', move=True, is_warn=False
-                )
-                time.sleep(1)
-                continue
-
-        for idx in list(select_str):
-            if ord(idx) <= 57:
-                idx = ord(idx) - 48
-            else:
-                idx = ord(idx) - 97 + 10
-            print(idx)
-
-            click_xpath(
-                driver,
-                '//table[contains(@class, "rc-imageselect-table")]//td[@tabindex="{index}"]'.format(
-                    index=tile_idx_list[idx - 1]
-                ),
-                move=True,
-            )
-        time.sleep(1)
-
-    driver.switch_to.default_content()
-
-
 def login_impl(driver, wait, config):
     logging.info("ログインを行います．")
     driver.get(LOGIN_URL)
@@ -261,7 +153,8 @@ def login_impl(driver, wait, config):
     time.sleep(2)
     if len(driver.find_elements(By.XPATH, '//div[@id="recaptchaV2"]')) != 0:
         logging.warning("画像認証が要求されました．")
-        resolve_captcha_img(driver, wait)
+        captcha.resolve_img(driver, wait, config)
+        logging.warning("画像認証を突破しました．")
         click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
     wait.until(
