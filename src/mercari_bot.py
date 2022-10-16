@@ -173,7 +173,7 @@ def resolve_captcha_img(driver, wait):
             map(lambda elem: elem.get_attribute("tabindex"), tile_list)
         )
 
-        select_str = input("選択タイル: ").strip()
+        select_str = input("選択タイル(1-9,a-g,end=0): ").strip()
 
         if select_str == "0":
             if click_xpath(
