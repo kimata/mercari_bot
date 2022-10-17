@@ -153,7 +153,8 @@ def login_impl(driver, wait, config):
     time.sleep(2)
     if len(driver.find_elements(By.XPATH, '//div[@id="recaptchaV2"]')) != 0:
         logging.warning("画像認証が要求されました．")
-        captcha.resolve_img(driver, wait, config)
+        # captcha.resolve_img(driver, wait, config)
+        captcha.resolve_mp3(driver, wait, config)
         logging.warning("画像認証を突破しました．")
         click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
