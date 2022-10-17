@@ -31,7 +31,7 @@ import pathlib
 import traceback
 import urllib.request
 
-from selenium_util import click_xpath
+from selenium_util import click_xpath, dump_page
 import captcha
 import logger
 import notifier
@@ -75,25 +75,6 @@ def get_memory_info(driver):
     ) // (1024 * 1024)
 
     return {"total": total, "js_heap": js_heap}
-
-
-def dump_page(driver, index):
-    name = inspect.stack()[1].function.replace("<", "").replace(">", "")
-    dump_path = pathlib.Path(DUMP_PATH)
-
-    os.makedirs(str(dump_path), exist_ok=True)
-
-    png_path = dump_path / (
-        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
-    )
-    htm_path = dump_path / (
-        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm")
-    )
-
-    driver.save_screenshot(str(png_path))
-
-    with open(str(htm_path), "w") as f:
-        f.write(driver.page_source)
 
 
 def wait_patiently(driver, wait, target):
@@ -508,7 +489,7 @@ try:
 except:
     logging.error("URL: {url}".format(url=driver.current_url))
     logging.error(traceback.format_exc())
-    dump_page(driver, int(random.random() * 100))
+    dump_page(driver, DUMP_PATH, int(random.random() * 100))
 
 driver.close()
 driver.quit()

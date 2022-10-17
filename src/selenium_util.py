@@ -3,6 +3,9 @@
 
 import logging
 import time
+import inspect
+import pathlib
+import os
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -32,3 +35,22 @@ def is_display(driver, xpath):
     return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (
         driver.find_element(By.XPATH, xpath).is_displayed()
     )
+
+
+def dump_page(driver, dump_path, index):
+    name = inspect.stack()[1].function.replace("<", "").replace(">", "")
+    dump_path = pathlib.Path(dump_path)
+
+    os.makedirs(str(dump_path), exist_ok=True)
+
+    png_path = dump_path / (
+        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
+    )
+    htm_path = dump_path / (
+        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm")
+    )
+
+    driver.save_screenshot(str(png_path))
+
+    with open(str(htm_path), "w") as f:
+        f.write(driver.page_source)

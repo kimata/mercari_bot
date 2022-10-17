@@ -137,12 +137,12 @@ def resolve_img(driver, wait, config):
             if click_xpath(
                 driver, '//button[contains(text(), "スキップ")]', move=True, is_warn=False
             ):
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
             elif click_xpath(
                 driver, '//button[contains(text(), "確認")]', move=True, is_warn=False
             ):
-                time.sleep(1)
+                time.sleep(0.5)
 
                 if is_display(
                     driver, '//div[contains(text(), "新しい画像も")]'
@@ -154,7 +154,7 @@ def resolve_img(driver, wait, config):
                 click_xpath(
                     driver, '//button[contains(text(), "次へ")]', move=True, is_warn=False
                 )
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
 
         for idx in list(select_str):
@@ -172,6 +172,6 @@ def resolve_img(driver, wait, config):
                 ),
                 move=True,
             )
-        time.sleep(1)
+        time.sleep(0.5)
 
     driver.switch_to.default_content()
