@@ -40,13 +40,12 @@ def recog_audio(audio_url):
         with recaptcha_audio as source:
             audio = recognizer.record(source)
 
-        text = recognizer.recognize_google(audio, language="en-US")
+        return recognizer.recognize_google(audio, language="en-US")
     except:
+        raise
+    finally:
         os.unlink(mp3_file.name)
         os.unlink(wav_file.name)
-        raise
-
-    return text
 
 
 def resolve_mp3(driver, wait, config):
