@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from speech_recognition import Recognizer, AudioFile
 import pydub
 
-from selenium_util import click_xpath, is_display, dump_page
+from selenium_util import click_xpath, is_display
 import notifier
 
 import pathlib
@@ -72,8 +72,6 @@ def resolve_mp3(driver, wait, config):
     click_xpath(driver, '//button[contains(@title, "確認用の文字を音声")]', move=True)
     time.sleep(0.5)
 
-    dump_page(driver, DUMP_PATH, 0)
-
     audio_url = driver.find_element(
         By.XPATH, '//audio[@id="audio-source"]'
     ).get_attribute("src")
@@ -84,11 +82,7 @@ def resolve_mp3(driver, wait, config):
     input_elem.send_keys(text.lower())
     input_elem.send_keys(Keys.ENTER)
 
-    dump_page(driver, DUMP_PATH, 1)
-
     driver.switch_to.default_content()
-
-    dump_page(driver, DUMP_PATH, 2)
 
 
 def resolve_img(driver, wait, config):
