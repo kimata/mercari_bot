@@ -167,6 +167,7 @@ def login(driver, wait, config):
     try:
         login_impl(driver, wait, config)
     except:
+        dump_page(driver, DUMP_PATH, int(random.random() * 100))
         # NOTE: 1回だけリトライする
         logging.error("ログインをリトライします．")
         time.sleep(10)
