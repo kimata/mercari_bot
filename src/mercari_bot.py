@@ -45,7 +45,7 @@ WAIT_RETRY_COUNT = 1
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 LOG_PATH = DATA_PATH / "log"
 
-CHROME_DATA_PATH = str(DATA_PATH / "chrome")
+CHROME_DATA_PATH = DATA_PATH / "chrome"
 RECORD_PATH = str(DATA_PATH / "record")
 DUMP_PATH = str(DATA_PATH / "debug")
 
@@ -62,6 +62,16 @@ def random_sleep(sec):
 
 def get_abs_path(path):
     return str(pathlib.Path(os.path.dirname(__file__), path))
+
+
+def click_xpath(driver, xpath, wait=None):
+    if wait is not None:
+        wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
+
+    if len(driver.find_elements(By.XPATH, xpath)) != 0:
+        driver.find_element(By.XPATH, xpath).click()
+    else:
+        logging.warning("Element is not found: {xpath}".format(xpath=xpath))
 
 
 def get_memory_info(driver):
@@ -97,7 +107,7 @@ def wait_patiently(driver, wait, target):
     raise error
 
 
-def login_impl(driver, wait, config):
+def login_impl(driver, wait, profile):
     logging.info("ログインを行います．")
     driver.get(LOGIN_URL)
 
@@ -105,7 +115,7 @@ def login_impl(driver, wait, config):
         EC.presence_of_element_located((By.XPATH, "//mer-navigation-top-menu-item"))
     )
 
-    click_xpath(driver, '//button[contains(text(), "はじめる")]', is_warn=False)
+    click_xpath(driver, '//button[contains(text(), "はじめる")]')
 
     menu_label = driver.find_elements(
         By.XPATH, "//mer-menu/mer-navigation-top-menu-item/span"
@@ -163,15 +173,15 @@ def login_impl(driver, wait, config):
     logging.info("ログインに成功しました．")
 
 
-def login(driver, wait, config):
+def login(driver, wait, profile):
     try:
-        login_impl(driver, wait, config)
+        login_impl(driver, wait, profile)
     except:
         dump_page(driver, DUMP_PATH, int(random.random() * 100))
         # NOTE: 1回だけリトライする
         logging.error("ログインをリトライします．")
         time.sleep(10)
-        login_impl(driver, wait, config)
+        login_impl(driver, wait, profile)
         pass
 
 
@@ -185,7 +195,7 @@ def warmup(driver):
     time.sleep(3)
 
 
-def create_driver_impl():
+def create_driver_impl(profile_name):
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")  # for Docker
@@ -197,7 +207,7 @@ def create_driver_impl():
     options.add_argument(
         '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36"'
     )
-    options.add_argument("--user-data-dir=" + CHROME_DATA_PATH)
+    options.add_argument("--user-data-dir=" + str(CHROME_DATA_PATH / profile_name))
 
     # NOTE: 下記がないと，snap で入れた chromium が「LC_ALL: cannot change locale (ja_JP.UTF-8)」
     # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
@@ -220,15 +230,15 @@ def create_driver_impl():
     return driver
 
 
-def create_driver():
+def create_driver(profile_name="Default"):
     # NOTE: 1回だけ自動リトライ
     try:
-        return create_driver_impl()
+        return create_driver_impl(profile_name)
     except:
-        return create_driver_impl()
+        return create_driver_impl(profile_name)
 
 
-def item_save(driver, wait, config, item):
+def item_save(driver, wait, profile, item):
     logging.info("出品情報の保存を行います．")
     item_path = pathlib.Path(RECORD_PATH) / item["id"]
     os.makedirs(str(item_path), exist_ok=True)
@@ -266,16 +276,16 @@ def item_save(driver, wait, config, item):
         )
 
 
-def item_price_down(driver, wait, config, item):
+def item_price_down(driver, wait, profile, item):
     logging.info(
-        "{down_step}円の値下げを行います．".format(down_step=config["price"]["down_step"])
+        "{down_step}円の値下げを行います．".format(down_step=profile["price"]["down_step"])
     )
 
     if item["is_stop"] != 0:
         logging.info("公開停止中のため，スキップします．")
         return
 
-    if item["price"] < config["price"]["threshold"]:
+    if item["price"] < profile["price"]["threshold"]:
         logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
         return
 
@@ -304,7 +314,7 @@ def item_price_down(driver, wait, config, item):
 
     price = item["price"] - shipping_fee
 
-    if price < config["price"]["threshold"]:
+    if price < profile["price"]["threshold"]:
         logging.info(
             "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
                 price=price, shipping=shipping_fee
@@ -319,7 +329,7 @@ def item_price_down(driver, wait, config, item):
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
     if not DEBUG:
-        new_price = int((price - config["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
+        new_price = int((price - profile["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
     else:
         new_price = price
 
@@ -402,7 +412,7 @@ def parse_item(driver, index):
     }
 
 
-def iter_items_on_display(driver, wait, config, item_func_list):
+def iter_items_on_display(driver, wait, profile, item_func_list):
     click_xpath(
         driver, '//mer-navigation-top-menu-item/span[contains(text(), "アカウント")]', wait
     )
@@ -447,7 +457,7 @@ def iter_items_on_display(driver, wait, config, item_func_list):
         wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
 
         for item_func in item_func_list:
-            item_func(driver, wait, config, item)
+            item_func(driver, wait, profile, item)
 
         random_sleep(4)
         driver.get(list_url)
@@ -461,6 +471,37 @@ def iter_items_on_display(driver, wait, config, item_func_list):
             break
 
 
+def do_work(profile):
+    driver = create_driver(profile["name"])
+
+    wait = WebDriverWait(driver, WAIT_TIMEOUT_SEC)
+    ret_code = -1
+
+    try:
+        warmup(driver)
+
+        login(driver, wait, profile)
+        iter_items_on_display(driver, wait, profile, [item_price_down])
+
+        mem_info = get_memory_info(driver)
+        logging.info(
+            "Chrome memory: {memory_total:,} MB (JS: {memory_js_heap:,} MB)".format(
+                memory_total=mem_info["total"], memory_js_heap=mem_info["js_heap"]
+            )
+        )
+        logging.info("Finish.")
+        ret_code = 0
+    except:
+        logging.error("URL: {url}".format(url=driver.current_url))
+        logging.error(traceback.format_exc())
+        dump_page(driver, int(random.random() * 100))
+
+    driver.close()
+    driver.quit()
+
+    return ret_code
+
+
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 log_str_io = logger.init("bot.mercari.inventory", True)
@@ -468,32 +509,10 @@ log_str_io = logger.init("bot.mercari.inventory", True)
 logging.info("Start.")
 
 config = load_config()
-driver = create_driver()
 
-wait = WebDriverWait(driver, WAIT_TIMEOUT_SEC)
-ret_code = -1
-
-try:
-    warmup(driver)
-
-    login(driver, wait, config)
-    iter_items_on_display(driver, wait, config, [item_price_down])
-
-    mem_info = get_memory_info(driver)
-    logging.info(
-        "Chrome memory: {memory_total:,} MB (JS: {memory_js_heap:,} MB)".format(
-            memory_total=mem_info["total"], memory_js_heap=mem_info["js_heap"]
-        )
-    )
-    logging.info("Finish.")
-    ret_code = 0
-except:
-    logging.error("URL: {url}".format(url=driver.current_url))
-    logging.error(traceback.format_exc())
-    dump_page(driver, DUMP_PATH, int(random.random() * 100))
-
-driver.close()
-driver.quit()
+ret_code = 0
+for profile in config["profile"]:
+    ret_code += do_work(profile)
 
 notifier.send(
     config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False
