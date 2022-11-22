@@ -277,6 +277,27 @@ def item_save(driver, wait, profile, item):
 
 
 def item_price_down(driver, wait, profile, item):
+    modified_text = driver.find_element(
+        By.XPATH, '//div[@id="item-info"]/section[2]//mer-text[@color="secondary"]'
+    ).text
+
+    if re.compile(r"秒前").search(modified_text):
+        modified_hour = 0
+    elif re.compile(r"分前").search(modified_text):
+        modified_hour = 0
+    elif re.compile(r"時間前").search(modified_text):
+        modified_hour = int("".join(filter(str.isdigit, modified_text)))
+    elif re.compile(r"日前").search(modified_text):
+        modified_hour = int("".join(filter(str.isdigit, modified_text))) * 24
+    elif re.compile(r"か月前").search(modified_text):
+        modified_hour = int("".join(filter(str.isdigit, modified_text))) * 24 * 30
+    else:
+        modified_hour = -1
+
+    if modified_hour < profile["interval"]["hour"]:
+        logging.info("更新してから {hour} 時間しか経過していないため，スキップします．".format(hour=modified_hour))
+        return
+
     logging.info(
         "{down_step}円の値下げを行います．".format(down_step=profile["price"]["down_step"])
     )

@@ -6,6 +6,8 @@ profile:
     price:
       down_step: 100      # 1回あたりの値下げ幅〔円〕
       threshold: 3000     # 値下げを止める価格〔円〕
+    interval:
+      hour: 20            # 更新時間がこの時間より短い場合，スキップ
 
 # SMTP server login and mailing address
 mail:
