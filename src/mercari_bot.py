@@ -515,7 +515,7 @@ def do_work(profile):
     except:
         logging.error("URL: {url}".format(url=driver.current_url))
         logging.error(traceback.format_exc())
-        dump_page(driver, int(random.random() * 100))
+        dump_page(driver, DUMP_PATH, int(random.random() * 100))
 
     driver.close()
     driver.quit()
