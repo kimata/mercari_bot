@@ -277,6 +277,10 @@ def item_save(driver, wait, profile, item):
 
 
 def item_price_down(driver, wait, profile, item):
+    if item["is_stop"] != 0:
+        logging.info("公開停止中のため，スキップします．")
+        return
+
     modified_text = driver.find_element(
         By.XPATH, '//div[@id="item-info"]/section[2]//mer-text[@color="secondary"]'
     ).text
@@ -301,10 +305,6 @@ def item_price_down(driver, wait, profile, item):
     logging.info(
         "{down_step}円の値下げを行います．".format(down_step=profile["price"]["down_step"])
     )
-
-    if item["is_stop"] != 0:
-        logging.info("公開停止中のため，スキップします．")
-        return
 
     if item["price"] < profile["price"]["threshold"]:
         logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
@@ -412,7 +412,7 @@ def parse_item(driver, index):
         item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value")
     )
     is_stop = 0
-    if len(item_root.find_elements(By.CSS_SELECTOR, "div.content > mer-text")) != 0:
+    if len(item_root.find_elements(By.CSS_SELECTOR, "span.information-label")) != 0:
         is_stop = 1
 
     try:
