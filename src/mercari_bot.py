@@ -135,9 +135,11 @@ def login_impl(driver, wait, profile):
     )
 
     driver.find_element(By.XPATH, '//input[@name="emailOrPhone"]').send_keys(
-        config["user"]
+        profile["user"]
     )
-    driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(config["pass"])
+    driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(
+        profile["pass"]
+    )
 
     click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
