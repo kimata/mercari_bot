@@ -162,7 +162,7 @@ def login_impl(driver, wait, profile):
     driver.find_element(By.XPATH, '//input[@name="code"]').send_keys(code)
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
 
-    time.sleep(0.5)
+    time.sleep(1)
 
     wait.until(
         EC.element_to_be_clickable(
