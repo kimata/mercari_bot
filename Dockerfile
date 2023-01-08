@@ -24,5 +24,6 @@ RUN useradd -m ubuntu
 USER ubuntu
 
 COPY --chown=ubuntu . .
+COPY font /usr/share/fonts/
 
 CMD ["./src/mercari_bot.py"]
