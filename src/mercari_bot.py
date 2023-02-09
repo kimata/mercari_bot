@@ -353,6 +353,9 @@ def item_price_down(driver, wait, profile, item):
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(new_price)
     click_xpath(driver, '//button[contains(text(), "変更する")]')
 
+    time.sleep(1)
+    click_xpath(driver, '//button[contains(text(), "このまま出品する")]', is_warn=False)
+
     wait_patiently(driver, wait, EC.title_contains(re.sub(" +", " ", item["name"])))
     wait_patiently(
         driver, wait, EC.presence_of_element_located((By.XPATH, "//mer-price"))
