@@ -64,16 +64,6 @@ def get_abs_path(path):
     return str(pathlib.Path(os.path.dirname(__file__), path))
 
 
-def click_xpath(driver, xpath, wait=None):
-    if wait is not None:
-        wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-
-    if len(driver.find_elements(By.XPATH, xpath)) != 0:
-        driver.find_element(By.XPATH, xpath).click()
-    else:
-        logging.warning("Element is not found: {xpath}".format(xpath=xpath))
-
-
 def get_memory_info(driver):
     total = subprocess.Popen(
         "smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE
