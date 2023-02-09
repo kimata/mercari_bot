@@ -39,7 +39,7 @@ from config import load_config
 
 LOGIN_URL = "https://jp.mercari.com"
 
-WAIT_TIMEOUT_SEC = 10
+WAIT_TIMEOUT_SEC = 15
 WAIT_RETRY_COUNT = 1
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
