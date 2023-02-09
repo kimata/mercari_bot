@@ -358,16 +358,24 @@ def item_price_down(driver, wait, profile, item):
 
     wait_patiently(driver, wait, EC.title_contains(re.sub(" +", " ", item["name"])))
     wait_patiently(
-        driver, wait, EC.presence_of_element_located((By.XPATH, "//mer-price"))
+        driver,
+        wait,
+        EC.presence_of_element_located((By.XPATH, '//div[@data-testid="price"]')),
     )
 
     # NOTE: 価格更新が反映されていない場合があるので，再度ページを取得する
     time.sleep(3)
     driver.get(driver.current_url)
-    wait.until(EC.presence_of_element_located((By.XPATH, "//mer-price")))
+    wait.until(
+        EC.presence_of_element_located((By.XPATH, '//div[@data-testid="price"]'))
+    )
 
     new_total_price = int(
-        driver.find_element(By.XPATH, "//mer-price").get_attribute("value")
+        re.sub(
+            ",",
+            "",
+            driver.find_element(By.XPATH, '//div[@data-testid="price"]/span[2]').text,
+        )
     )
 
     if new_total_price != (new_price + shipping_fee):
