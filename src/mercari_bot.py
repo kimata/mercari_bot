@@ -352,6 +352,7 @@ def item_price_down(driver, wait, profile, item):
     )
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.BACK_SPACE)
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(new_price)
+    random_sleep(5)
     click_xpath(driver, '//button[contains(text(), "変更する")]')
 
     time.sleep(1)
