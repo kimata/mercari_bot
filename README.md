@@ -9,6 +9,7 @@
 ## 準備
 
 必要なモジュールをインストールします．
+後述する Docker を使った方法で実行する場合は，インストール不要です．
 
 ```
 sudo apt install -y python3-yaml
@@ -21,15 +22,14 @@ sudo snap install chromium
 
 pip3 install selenium
 pip3 install webdriver-manager
+pip3 install SpeechRecognition
 ```
-
-後述する Docker を使った方法で実行する場合は，インストール不要です．
 
 ## 設定
 
 ログイン情報や値下げ内容を `config.yml` で指定します．
 
-`config.yml.example` を名前変更して設定してください．
+`config.example.yml` を名前変更して設定してください．
 設定方法方はファイルを見ていただけばわかると思います．
 
 ## 実行方法
