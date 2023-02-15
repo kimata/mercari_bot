@@ -153,6 +153,8 @@ def login_impl(driver, wait, profile):
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
 
     wait.until(EC.presence_of_all_elements_located)
+    time.sleep(5)
+
     driver.get(LOGIN_URL)
 
     wait.until(
