@@ -6,38 +6,29 @@ import logging.handlers
 import inspect
 import subprocess
 
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
-
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
 
 import time
 import os
 import sys
 import random
 import re
-import shutil
 import yaml
 
 import pathlib
 import traceback
 import urllib.request
 
-from selenium_util import click_xpath, dump_page
-import captcha
+from selenium_util import create_driver, click_xpath, dump_page
 import logger
 import notifier
+import mercari
 from config import load_config
-
-LOGIN_URL = "https://jp.mercari.com"
 
 WAIT_TIMEOUT_SEC = 15
 WAIT_RETRY_COUNT = 1
@@ -97,140 +88,14 @@ def wait_patiently(driver, wait, target):
     raise error
 
 
-def login_impl(driver, wait, profile):
-    logging.info("ログインを行います．")
-    driver.get(LOGIN_URL)
-
-    wait.until(
-        EC.presence_of_element_located((By.XPATH, "//mer-navigation-top-menu-item"))
-    )
-
-    click_xpath(driver, '//button[contains(text(), "はじめる")]')
-
-    menu_label = driver.find_elements(
-        By.XPATH, "//mer-menu/mer-navigation-top-menu-item/span"
-    )
-    if (len(menu_label) != 0) and (menu_label[0].text == "アカウント"):
-        logging.info("既にログイン済みでした．")
-        return
-
-    click_xpath(
-        driver, '//mer-navigation-top-menu-item/span[contains(text(), "ログイン")]', wait
-    )
-    logging.info("メール・電話番号でログインします．")
-    click_xpath(driver, '//span[contains(text(), "メール・電話番号でログイン")]', wait)
-
-    wait.until(
-        EC.presence_of_element_located((By.XPATH, '//mer-heading[@title-label="ログイン"]'))
-    )
-
-    driver.find_element(By.XPATH, '//input[@name="emailOrPhone"]').send_keys(
-        profile["user"]
-    )
-    driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(
-        profile["pass"]
-    )
-
-    click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
-
-    time.sleep(2)
-    if len(driver.find_elements(By.XPATH, '//div[@id="recaptchaV2"]')) != 0:
-        logging.warning("画像認証が要求されました．")
-        # captcha.resolve_img(driver, wait, config)
-        captcha.resolve_mp3(driver, wait, config)
-        logging.warning("画像認証を突破しました．")
-        click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
-
-    wait.until(
-        EC.presence_of_element_located(
-            (By.XPATH, '//mer-heading[@title-label="電話番号の確認"]')
-        )
-    )
-
-    logging.info("認証番号の入力を待ちます．")
-    code = input("認証番号: ")
-    driver.find_element(By.XPATH, '//input[@name="code"]').send_keys(code)
-    click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
-
-    wait.until(EC.presence_of_all_elements_located)
-    time.sleep(5)
-
-    driver.get(LOGIN_URL)
-
-    wait.until(
-        EC.element_to_be_clickable(
-            (
-                By.XPATH,
-                '//mer-menu/mer-navigation-top-menu-item/span[contains(text(), "アカウント")]',
-            )
-        )
-    )
-    logging.info("ログインに成功しました．")
-
-
-def login(driver, wait, profile):
-    try:
-        login_impl(driver, wait, profile)
-    except:
-        dump_page(driver, DUMP_PATH, int(random.random() * 100))
-        # NOTE: 1回だけリトライする
-        logging.error("ログインをリトライします．")
-        time.sleep(10)
-        login_impl(driver, wait, profile)
-        pass
-
-
 def warmup(driver):
     logging.info("ウォームアップを行います．")
 
     # NOTE: 自動処理の最初の方にエラーが発生することが多いので，事前にアクセスしておく
-    driver.get(LOGIN_URL)
+    driver.get(mercari.LOGIN_URL)
     time.sleep(3)
     driver.refresh()
     time.sleep(3)
-
-
-def create_driver_impl(profile_name):
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")  # for Docker
-    options.add_argument("--disable-dev-shm-usage")  # for Docker
-
-    options.add_argument("--lang=ja-JP")
-    options.add_argument("--window-size=1920,1080")
-
-    options.add_argument(
-        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0"'
-    )
-    options.add_argument("--user-data-dir=" + str(CHROME_DATA_PATH / profile_name))
-
-    # NOTE: 下記がないと，snap で入れた chromium が「LC_ALL: cannot change locale (ja_JP.UTF-8)」
-    # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
-    os.environ["LC_ALL"] = "C"
-
-    if shutil.which("google-chrome") is not None:
-        chrome_type = ChromeType.GOOGLE
-    else:
-        chrome_type = ChromeType.CHROMIUM
-
-    driver = webdriver.Chrome(
-        service=Service(
-            ChromeDriverManager(chrome_type=chrome_type).install(),
-            log_path=DRIVER_LOG_PATH,
-            service_args=["--verbose"],
-        ),
-        options=options,
-    )
-
-    return driver
-
-
-def create_driver(profile_name="Default"):
-    # NOTE: 1回だけ自動リトライ
-    try:
-        return create_driver_impl(profile_name)
-    except:
-        return create_driver_impl(profile_name)
 
 
 def item_save(driver, wait, profile, item):
@@ -499,7 +364,7 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
             break
 
 
-def do_work(profile):
+def do_work(config, profile):
     driver = create_driver(profile["name"])
 
     wait = WebDriverWait(driver, WAIT_TIMEOUT_SEC)
@@ -508,7 +373,7 @@ def do_work(profile):
     try:
         warmup(driver)
 
-        login(driver, wait, profile)
+        mercari.login(config, driver, wait, profile)
         iter_items_on_display(driver, wait, profile, [item_price_down])
 
         mem_info = get_memory_info(driver)
@@ -522,7 +387,7 @@ def do_work(profile):
     except:
         logging.error("URL: {url}".format(url=driver.current_url))
         logging.error(traceback.format_exc())
-        dump_page(driver, DUMP_PATH, int(random.random() * 100))
+        dump_page(driver, int(random.random() * 100))
 
     driver.close()
     driver.quit()
@@ -540,7 +405,7 @@ config = load_config()
 
 ret_code = 0
 for profile in config["profile"]:
-    ret_code += do_work(profile)
+    ret_code += do_work(config, profile)
 
 notifier.send(
     config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False
