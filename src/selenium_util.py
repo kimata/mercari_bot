@@ -8,6 +8,7 @@ import pathlib
 import os
 import shutil
 import datetime
+import subprocess
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -138,6 +139,28 @@ def clean_dump(dump_path=DUMP_PATH, keep_days=1):
                 )
             )
             item.unlink(missing_ok=True)
+
+
+def get_memory_info(driver):
+    total = subprocess.Popen(
+        "smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE
+    ).communicate()[0]
+    total = int(str(total, "utf-8").strip()) // 1024
+
+    js_heap = driver.execute_script(
+        "return window.performance.memory.usedJSHeapSize"
+    ) // (1024 * 1024)
+
+    return {"total": total, "js_heap": js_heap}
+
+
+def log_memory_usage(driver):
+    mem_info = get_memory_info(driver)
+    logging.info(
+        "Chrome memory: {memory_total:,} MB (JS: {memory_js_heap:,} MB)".format(
+            memory_total=mem_info["total"], memory_js_heap=mem_info["js_heap"]
+        )
+    )
 
 
 if __name__ == "__main__":
