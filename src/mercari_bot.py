@@ -3,12 +3,10 @@
 
 import logging
 import logging.handlers
-import inspect
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException
 
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -26,12 +24,14 @@ import urllib.request
 from selenium_util import (
     create_driver,
     click_xpath,
+    wait_patiently,
     dump_page,
     clean_dump,
+    random_sleep,
     log_memory_usage,
 )
 import logger
-import notifier
+import notify_mail
 import mercari
 from config import load_config
 
@@ -50,44 +50,6 @@ HIST_CSV_PATH = str(LOG_PATH / "history.csv")
 
 # NOTE: True にすると，最初のアイテムだけ処理され，価格変更も行われない
 DEBUG = False
-
-
-def random_sleep(sec):
-    time.sleep(sec + sec / 2.0 * random.random())
-
-
-def get_abs_path(path):
-    return str(pathlib.Path(os.path.dirname(__file__), path))
-
-
-def wait_patiently(driver, wait, target):
-    error = None
-    for _ in range(WAIT_RETRY_COUNT + 1):
-        try:
-            wait.until(target)
-            return
-        except TimeoutException as e:
-            logging.warning(
-                "タイムアウトが発生しました．({func} in {file} line {line})".format(
-                    func=inspect.stack()[1].function,
-                    file=inspect.stack()[1].filename,
-                    line=inspect.stack()[1].lineno,
-                )
-            )
-            driver.refresh()
-            error = e
-            pass
-    raise error
-
-
-def warmup(driver):
-    logging.info("ウォームアップを行います．")
-
-    # NOTE: 自動処理の最初の方にエラーが発生することが多いので，事前にアクセスしておく
-    driver.get(mercari.LOGIN_URL)
-    time.sleep(3)
-    driver.refresh()
-    time.sleep(3)
 
 
 def item_save(driver, wait, profile, item):
@@ -363,7 +325,7 @@ def do_work(config, profile):
     ret_code = -1
 
     try:
-        warmup(driver)
+        mercari.warmup(driver)
 
         mercari.login(config, driver, wait, profile)
         iter_items_on_display(driver, wait, profile, [item_price_down])
@@ -396,7 +358,7 @@ ret_code = 0
 for profile in config["profile"]:
     ret_code += do_work(config, profile)
 
-notifier.send(
+notify_mail.send(
     config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False
 )
 

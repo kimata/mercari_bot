@@ -9,6 +9,7 @@ import os
 import shutil
 import datetime
 import subprocess
+import random
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -16,11 +17,15 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
 from webdriver_manager.core.utils import ChromeType
 from webdriver_manager.chrome import ChromeDriverManager
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 DUMP_PATH = str(DATA_PATH / "debug")
+
+WAIT_RETRY_COUNT = 1
 
 
 def create_driver_impl(profile_name, data_path):
@@ -99,6 +104,30 @@ def is_display(driver, xpath):
     return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (
         driver.find_element(By.XPATH, xpath).is_displayed()
     )
+
+
+def random_sleep(sec):
+    time.sleep(sec + sec / 2.0 * random.random())
+
+
+def wait_patiently(driver, wait, target):
+    error = None
+    for _ in range(WAIT_RETRY_COUNT + 1):
+        try:
+            wait.until(target)
+            return
+        except TimeoutException as e:
+            logging.warning(
+                "タイムアウトが発生しました．({func} in {file} line {line})".format(
+                    func=inspect.stack()[1].function,
+                    file=inspect.stack()[1].filename,
+                    line=inspect.stack()[1].lineno,
+                )
+            )
+            driver.refresh()
+            error = e
+            pass
+    raise error
 
 
 def dump_page(driver, index, dump_path=DUMP_PATH):

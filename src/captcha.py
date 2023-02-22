@@ -13,7 +13,7 @@ from speech_recognition import Recognizer, AudioFile
 import pydub
 
 from selenium_util import click_xpath, is_display
-import notifier
+import notify_mail
 
 import pathlib
 import os
@@ -106,7 +106,7 @@ def resolve_img(driver, wait, config):
     )
     while True:
         # NOTE: 問題画像を切り抜いてメールで送信
-        notifier.send(
+        notify_mail.send(
             config,
             "reCAPTCHA",
             png_data=driver.find_element(By.XPATH, "//body").screenshot_as_png,

@@ -94,3 +94,13 @@ def login(config, driver, wait, profile):
         time.sleep(10)
         login_impl(driver, wait, profile)
         pass
+
+
+def warmup(driver):
+    logging.info("ウォームアップを行います．")
+
+    # NOTE: 自動処理の最初の方にエラーが発生することが多いので，事前にアクセスしておく
+    driver.get(LOGIN_URL)
+    time.sleep(3)
+    driver.refresh()
+    time.sleep(3)
