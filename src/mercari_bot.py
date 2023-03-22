@@ -218,16 +218,14 @@ def item_price_down(driver, wait, profile, item):
 def parse_item(driver, index):
     item_root = driver.find_element(
         By.XPATH,
-        '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
+        '//div[@data-testid="listed-item-list"]/mer-list-item['
         + str(index)
         + "]//mer-item-object",
     ).shadow_root
 
     item_url = driver.find_element(
         By.XPATH,
-        '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
-        + str(index)
-        + "]//a",
+        '//div[@data-testid="listed-item-list"]/mer-list-item[' + str(index) + "]//a",
     ).get_attribute("href")
     item_id = item_url.split("/")[-1]
 
@@ -267,13 +265,13 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
 
     wait.until(
         EC.presence_of_element_located(
-            (By.XPATH, '//mer-list[@data-testid="listed-item-list"]/mer-list-item')
+            (By.XPATH, '//div[@data-testid="listed-item-list"]/mer-list-item')
         )
     )
 
     item_count = len(
         driver.find_elements(
-            By.XPATH, '//mer-list[@data-testid="listed-item-list"]/mer-list-item'
+            By.XPATH, '//div[@data-testid="listed-item-list"]/mer-list-item'
         )
     )
 
@@ -292,9 +290,7 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
         driver.execute_script("window.scrollTo(0, 0);")
         item_link = driver.find_element(
             By.XPATH,
-            '//mer-list[@data-testid="listed-item-list"]/mer-list-item['
-            + str(i)
-            + "]//a",
+            '//div[@data-testid="listed-item-list"]/mer-list-item[' + str(i) + "]//a",
         )
         # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
         item_link.location_once_scrolled_into_view
@@ -310,7 +306,7 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
         driver.get(list_url)
         wait.until(
             EC.presence_of_element_located(
-                (By.XPATH, '//mer-list[@data-testid="listed-item-list"]/mer-list-item')
+                (By.XPATH, '//div[@data-testid="listed-item-list"]/mer-list-item')
             )
         )
 
