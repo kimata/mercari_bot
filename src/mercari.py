@@ -92,7 +92,7 @@ def login(config, driver, wait, profile):
         # NOTE: 1回だけリトライする
         logging.error("ログインをリトライします．")
         time.sleep(10)
-        login_impl(driver, wait, profile)
+        login_impl(config, driver, wait, profile)
         pass
 
 
