@@ -19,13 +19,15 @@ def login_impl(config, driver, wait, profile):
     driver.get(LOGIN_URL)
 
     wait.until(
-        EC.presence_of_element_located((By.XPATH, "//mer-navigation-top-menu-item"))
+        EC.presence_of_element_located(
+            (By.XPATH, '//div[@class="merNavigationTopMenuItem"]')
+        )
     )
 
     click_xpath(driver, '//button[contains(text(), "はじめる")]')
 
     menu_label = driver.find_elements(
-        By.XPATH, "//mer-menu/mer-navigation-top-menu-item/span"
+        By.XPATH, '//div[@class="merNavigationTopMenuItem"]//button'
     )
     if (len(menu_label) != 0) and (menu_label[0].text == "アカウント"):
         logging.info("既にログイン済みでした．")

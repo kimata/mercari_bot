@@ -96,7 +96,8 @@ def item_price_down(driver, wait, profile, item):
         return
 
     modified_text = driver.find_element(
-        By.XPATH, '//div[@id="item-info"]/section[2]//mer-text[@color="secondary"]'
+        By.XPATH,
+        '//div[@id="item-info"]//mer-show-more/following-sibling::p[contains(@class, "merText")]',
     ).text
 
     if re.compile(r"秒前").search(modified_text):
@@ -124,7 +125,7 @@ def item_price_down(driver, wait, profile, item):
         logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
         return
 
-    click_xpath(driver, '//mer-button[@data-testid="checkout-button"]')
+    click_xpath(driver, '//div[@data-testid="checkout-button"]')
     wait_patiently(driver, wait, EC.title_contains("商品の情報を編集"))
 
     # NOTE: 食品などの場合，「出品情報の確認」の表示が出るので，「OK」ボタンを押す
@@ -259,7 +260,9 @@ def parse_item(driver, index):
 
 def iter_items_on_display(driver, wait, profile, item_func_list):
     click_xpath(
-        driver, '//mer-navigation-top-menu-item/span[contains(text(), "アカウント")]', wait
+        driver,
+        '//div[@class="merNavigationTopMenuItem"]//button[contains(text(), "アカウント")]',
+        wait,
     )
     click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
 
