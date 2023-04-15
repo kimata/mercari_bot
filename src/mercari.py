@@ -34,7 +34,9 @@ def login_impl(config, driver, wait, profile):
         return
 
     click_xpath(
-        driver, '//mer-navigation-top-menu-item/span[contains(text(), "ログイン")]', wait
+        driver,
+        '//div[@class="merNavigationTopMenuItem"]//button[contains(text(), "ログイン")]',
+        wait,
     )
     logging.info("メール・電話番号でログインします．")
     click_xpath(driver, '//span[contains(text(), "メール・電話番号でログイン")]', wait)
@@ -79,7 +81,7 @@ def login_impl(config, driver, wait, profile):
         EC.element_to_be_clickable(
             (
                 By.XPATH,
-                '//mer-menu/mer-navigation-top-menu-item/span[contains(text(), "アカウント")]',
+                '//div[@class="merNavigationTopMenuItem"]//button[contains(text(), "アカウント")]',
             )
         )
     )
