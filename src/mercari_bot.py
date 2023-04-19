@@ -48,6 +48,10 @@ DUMP_PATH = str(DATA_PATH / "debug")
 DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
 HIST_CSV_PATH = str(LOG_PATH / "history.csv")
 
+ITEM_XPATH = (
+    '//div[@data-testid="listed-item-list"]/div[@data-testid="merListItem-container"]'
+)
+
 # NOTE: True にすると，最初のアイテムだけ処理され，価格変更も行われない
 DEBUG = False
 
@@ -219,14 +223,12 @@ def item_price_down(driver, wait, profile, item):
 def parse_item(driver, index):
     item_root = driver.find_element(
         By.XPATH,
-        '//div[@data-testid="listed-item-list"]/mer-list-item['
-        + str(index)
-        + "]//mer-item-object",
+        ITEM_XPATH + "[" + str(index) + "]//mer-item-object",
     ).shadow_root
 
     item_url = driver.find_element(
         By.XPATH,
-        '//div[@data-testid="listed-item-list"]/mer-list-item[' + str(index) + "]//a",
+        ITEM_XPATH + "[" + str(index) + "]//a",
     ).get_attribute("href")
     item_id = item_url.split("/")[-1]
 
@@ -268,13 +270,17 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
 
     wait.until(
         EC.presence_of_element_located(
-            (By.XPATH, '//div[@data-testid="listed-item-list"]/mer-list-item')
+            (
+                By.XPATH,
+                ITEM_XPATH,
+            )
         )
     )
 
     item_count = len(
         driver.find_elements(
-            By.XPATH, '//div[@data-testid="listed-item-list"]/mer-list-item'
+            By.XPATH,
+            ITEM_XPATH,
         )
     )
 
@@ -293,7 +299,7 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
         driver.execute_script("window.scrollTo(0, 0);")
         item_link = driver.find_element(
             By.XPATH,
-            '//div[@data-testid="listed-item-list"]/mer-list-item[' + str(i) + "]//a",
+            ITEM_XPATH + "[" + str(i) + "]//a",
         )
         # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
         item_link.location_once_scrolled_into_view
@@ -307,11 +313,7 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
 
         random_sleep(4)
         driver.get(list_url)
-        wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//div[@data-testid="listed-item-list"]/mer-list-item')
-            )
-        )
+        wait.until(EC.presence_of_element_located((By.XPATH, ITEM_XPATH)))
 
         if DEBUG:
             break
