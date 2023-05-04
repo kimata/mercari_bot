@@ -359,7 +359,7 @@ def do_work(config, profile):
 
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
-log_str_io = logger.init("bot.mercari.inventory", is_str=True)
+log_str_io = logger.init("bot.mercari.inventory", level=logging.INFO, is_str=True)
 
 logging.info("Start.")
 
