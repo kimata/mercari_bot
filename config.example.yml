@@ -9,10 +9,17 @@ profile:
     interval:
       hour: 20            # 更新時間がこの時間より短い場合，スキップ
 
-# SMTP server login and mailing address
-mail:
-  user:
-  pass:
-  from:
-  to:
-  subject:
+# mail:
+#   user:
+#   pass:
+#   from:
+#   to:
+#   subject:
+
+# slack:
+#   bot_token:
+#   info:
+#     channel: "#mercari"
+#   error:
+#     channel: "#error"
+#     interval_min: 180
