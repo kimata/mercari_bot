@@ -91,16 +91,12 @@ def error(token, channel, message, interval_min=10, formatter=format_simple):
     ERROR_NOTIFY_FOOTPRINT.touch()
 
 
-# NOTE: Slack SDK のロギングレベルは常に WARNING に固定する
-logging.getLogger(slack_sdk.web.base_client.__name__).setLevel(logging.WARNING)
-
-
 if __name__ == "__main__":
     import logger
     import sys
     from config import load_config
 
-    logger.init("test", level=logging.DEBUG)
+    logger.init("test", level=logging.WARNING)
     logging.info("Test")
 
     config = load_config()
