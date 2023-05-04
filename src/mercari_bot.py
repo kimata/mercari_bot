@@ -33,6 +33,7 @@ from selenium_util import (
 import logger
 import notify_mail
 import mercari
+import notify_slack
 from config import load_config
 
 WAIT_TIMEOUT_SEC = 15
@@ -338,6 +339,15 @@ def do_work(config, profile):
     except:
         logging.error("URL: {url}".format(url=driver.current_url))
         logging.error(traceback.format_exc())
+
+        if "slack" in config:
+            notify_slack.error(
+                config["slack"]["bot_token"],
+                config["slack"]["info"]["channel"],
+                traceback.format_exc(),
+                config["slack"]["error"]["interval_min"],
+            )
+
         dump_page(driver, int(random.random() * 100))
         clean_dump()
 
@@ -359,8 +369,15 @@ ret_code = 0
 for profile in config["profile"]:
     ret_code += do_work(config, profile)
 
-notify_mail.send(
-    config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False
-)
+if "main" in config:
+    notify_mail.send(
+        config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False
+    )
+if "slack" in config:
+    notify_slack.info(
+        config["slack"]["bot_token"],
+        config["slack"]["info"]["channel"],
+        log_str_io.getvalue(),
+    )
 
 sys.exit(ret_code)

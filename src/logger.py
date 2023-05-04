@@ -21,8 +21,8 @@ class GZipRotator:
         os.remove(source)
 
 
-def init(name, is_str=False):
-    coloredlogs.install(fmt=LOG_FORMAT.format(name=name))
+def init(name, level=logging.WARNING, is_str=False):
+    coloredlogs.install(fmt=LOG_FORMAT.format(name=name), level=level)
 
     if is_str:
         str_io = io.StringIO()
