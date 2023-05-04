@@ -57,13 +57,17 @@ def send(token, channel, title, message):
 
 
 def info(token, channel, message, formatter=format_simple):
+    LINE_SPLIT = 20
+
     title = "Info"
-    send(
-        token,
-        channel,
-        title,
-        formatter(title, message),
-    )
+    message_lines = message.splitlines()
+    for i in range(0, len(message_lines), LINE_SPLIT):
+        send(
+            token,
+            channel,
+            title,
+            formatter(title, "\n".join(message_lines[i : i + LINE_SPLIT])),
+        )
 
 
 def error(token, channel, message, interval_min=10, formatter=format_simple):
