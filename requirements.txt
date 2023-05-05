@@ -1,3 +1,4 @@
 selenium
 webdriver-manager
 SpeechRecognition
+slack_bolt
