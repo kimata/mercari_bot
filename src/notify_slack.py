@@ -37,20 +37,18 @@ SIMPLE_TMPL = """\
 def format_simple(title, message):
     return {
         "text": message,
-        "json": json.loads(
-            SIMPLE_TMPL.format(title=title, message=json.dumps(message))
-        ),
+        "json": SIMPLE_TMPL.format(title=title, message=json.dumps(message)),
     }
 
 
-def send(token, channel, title, message):
+def send(token, channel, message):
     client = slack_sdk.WebClient(token=token)
 
     try:
         client.chat_postMessage(
             channel=channel,
             text=message["text"],
-            blocks=message["json"],
+            blocks=json.loads(message["json"]),
         )
     except slack_sdk.errors.SlackApiError as e:
         logging.warning(e.response["error"])
@@ -64,7 +62,6 @@ def split_send(token, channel, title, message, formatter=format_simple):
         send(
             token,
             channel,
-            title,
             formatter(title, "\n".join(message_lines[i : i + LINE_SPLIT])),
         )
 
