@@ -141,14 +141,12 @@ def item_price_down(driver, wait, profile, item):
     wait.until(EC.presence_of_element_located((By.XPATH, '//input[@name="price"]')))
 
     # NOTE: 梱包・発送たのメル便の場合は送料を取得
-    if (
-        len(driver.find_elements(By.XPATH, '//mer-price[@data-testid="shipping-fee"]'))
-        != 0
-    ):
+    if len(driver.find_elements(By.XPATH, '//span[@data-testid="shipping-fee"]')) != 0:
         shipping_fee = int(
             driver.find_element(
-                By.XPATH, '//mer-price[@data-testid="shipping-fee"]'
-            ).get_attribute("value")
+                By.XPATH,
+                '//span[@data-testid="shipping-fee"]/span[contains(@class, "number")]',
+            ).text.replace(",", "")
         )
     else:
         shipping_fee = 0
