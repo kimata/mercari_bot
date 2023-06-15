@@ -102,7 +102,7 @@ def item_price_down(driver, wait, profile, item):
 
     modified_text = driver.find_element(
         By.XPATH,
-        '//div[@id="item-info"]//mer-show-more/following-sibling::p[contains(@class, "merText")]',
+        '//div[@id="item-info"]//div[contains(@class,"merShowMore")]/following-sibling::p[contains(@class, "merText")]',
     ).text
 
     if re.compile(r"秒前").search(modified_text):
