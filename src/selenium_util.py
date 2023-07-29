@@ -19,9 +19,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
-from webdriver_manager.core.utils import ChromeType
-from webdriver_manager.chrome import ChromeDriverManager
-
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 DUMP_PATH = str(DATA_PATH / "debug")
 
@@ -52,14 +49,8 @@ def create_driver_impl(profile_name, data_path):
     # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
     os.environ["LC_ALL"] = "C"
 
-    if shutil.which("google-chrome") is not None:
-        chrome_type = ChromeType.GOOGLE
-    else:
-        chrome_type = ChromeType.CHROMIUM
-
     driver = webdriver.Chrome(
         service=Service(
-            ChromeDriverManager(chrome_type=chrome_type).install(),
             log_path=str(log_path / "webdriver.log"),
             service_args=["--verbose"],
         ),
