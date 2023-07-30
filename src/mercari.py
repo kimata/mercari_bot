@@ -24,7 +24,11 @@ def login_impl(config, driver, wait, profile):
         )
     )
 
+    time.sleep(1)
+
     click_xpath(driver, '//button[contains(text(), "はじめる")]')
+
+    time.sleep(1)
 
     menu_label = driver.find_elements(
         By.XPATH,
