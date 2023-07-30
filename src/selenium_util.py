@@ -41,7 +41,7 @@ def create_driver_impl(profile_name, data_path):
     options.add_argument("--window-size=1920,1080")
 
     options.add_argument(
-        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0"'
+        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"'
     )
     options.add_argument("--user-data-dir=" + str(chrome_data_path / profile_name))
 
