@@ -10,6 +10,7 @@ build-image:
     image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812D
 
     script:
+        - export GIT_SSL_NO_VERIFY=1
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
         - docker pull ${CI_REGISTRY_IMAGE} || true
