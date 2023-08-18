@@ -49,9 +49,7 @@ DUMP_PATH = str(DATA_PATH / "debug")
 DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
 HIST_CSV_PATH = str(LOG_PATH / "history.csv")
 
-ITEM_XPATH = (
-    '//div[@data-testid="listed-item-list"]/div[@data-testid="merListItem-container"]'
-)
+ITEM_XPATH = '//div[@data-testid="listed-item-list"]/div[@data-testid="merListItem-container"]'
 
 # NOTE: True にすると，最初のアイテムだけ処理され，価格変更も行われない
 DEBUG = False
@@ -67,9 +65,7 @@ def item_save(driver, wait, profile, item):
         thumb_url = thumb_elem.get_attribute("src")
         thumb_path = item_path / (str(i) + ".jpg")
         if not thumb_path.exists():
-            logging.info(
-                "Save {url} to {path}".format(url=thumb_url, path=str(thumb_path))
-            )
+            logging.info("Save {url} to {path}".format(url=thumb_url, path=str(thumb_path)))
             urllib.request.urlretrieve(thumb_url, str(thumb_path))
             random_sleep(1)
 
@@ -79,9 +75,7 @@ def item_save(driver, wait, profile, item):
     logging.info("Save content to {path}".format(path=desc_path))
     desc = desc_root.find_element(By.CSS_SELECTOR, "div.content").text
 
-    shipping = driver.find_element(By.XPATH, '//span[@data-testid="配送の方法"]').text.split(
-        "\n"
-    )[0]
+    shipping = driver.find_element(By.XPATH, '//span[@data-testid="配送の方法"]').text.split("\n")[0]
 
     item["desc"] = desc
     item["shipping"] = shipping
@@ -90,9 +84,7 @@ def item_save(driver, wait, profile, item):
     logging.info("Save info to {path}".format(path=info_path))
 
     with open(info_path, mode="w") as f:
-        yaml.dump(
-            item, f, default_flow_style=False, encoding="utf-8", allow_unicode=True
-        )
+        yaml.dump(item, f, default_flow_style=False, encoding="utf-8", allow_unicode=True)
 
 
 def item_price_down(driver, wait, profile, item):
@@ -122,9 +114,7 @@ def item_price_down(driver, wait, profile, item):
         logging.info("更新してから {hour} 時間しか経過していないため，スキップします．".format(hour=modified_hour))
         return
 
-    logging.info(
-        "{down_step}円の値下げを行います．".format(down_step=profile["price"]["down_step"])
-    )
+    logging.info("{down_step}円の値下げを行います．".format(down_step=profile["price"]["down_step"]))
 
     if item["price"] < profile["price"]["threshold"]:
         logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
@@ -155,15 +145,11 @@ def item_price_down(driver, wait, profile, item):
 
     if price < profile["price"]["threshold"]:
         logging.info(
-            "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
-                price=price, shipping=shipping_fee
-            )
+            "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(price=price, shipping=shipping_fee)
         )
         return
 
-    cur_price = int(
-        driver.find_element(By.XPATH, '//input[@name="price"]').get_attribute("value")
-    )
+    cur_price = int(driver.find_element(By.XPATH, '//input[@name="price"]').get_attribute("value"))
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
@@ -172,9 +158,7 @@ def item_price_down(driver, wait, profile, item):
     else:
         new_price = price
 
-    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(
-        Keys.CONTROL + "a"
-    )
+    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.CONTROL + "a")
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.BACK_SPACE)
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(new_price)
     random_sleep(2)
@@ -193,9 +177,7 @@ def item_price_down(driver, wait, profile, item):
     # NOTE: 価格更新が反映されていない場合があるので，再度ページを取得する
     time.sleep(3)
     driver.get(driver.current_url)
-    wait.until(
-        EC.presence_of_element_located((By.XPATH, '//div[@data-testid="price"]'))
-    )
+    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-testid="price"]')))
 
     new_total_price = int(
         re.sub(
@@ -213,9 +195,7 @@ def item_price_down(driver, wait, profile, item):
         )
 
     logging.info(
-        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(
-            total=item["price"], new_total=new_total_price
-        )
+        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(total=item["price"], new_total=new_total_price)
     )
 
 
@@ -231,22 +211,14 @@ def parse_item(driver, index):
     ).get_attribute("href")
     item_id = item_url.split("/")[-1]
 
-    name = item_root.find_element(By.CSS_SELECTOR, "div.container").get_attribute(
-        "aria-label"
-    )
-    price = int(
-        item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value")
-    )
+    name = item_root.find_element(By.CSS_SELECTOR, "div.container").get_attribute("aria-label")
+    price = int(item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value"))
     is_stop = 0
     if len(item_root.find_elements(By.CSS_SELECTOR, "span.information-label")) != 0:
         is_stop = 1
 
     try:
-        view = int(
-            item_root.find_element(
-                By.CSS_SELECTOR, "mer-icon-eye-outline + span.icon-text"
-            ).text
-        )
+        view = int(item_root.find_element(By.CSS_SELECTOR, "mer-icon-eye-outline + span.icon-text").text)
     except:
         view = 0
 
@@ -368,9 +340,7 @@ for profile in config["profile"]:
     ret_code += do_work(config, profile)
 
 if "main" in config:
-    notify_mail.send(
-        config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False
-    )
+    notify_mail.send(config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False)
 if "slack" in config:
     notify_slack.info(
         config["slack"]["bot_token"],

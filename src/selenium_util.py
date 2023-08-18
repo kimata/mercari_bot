@@ -127,12 +127,8 @@ def dump_page(driver, index, dump_path=DUMP_PATH):
 
     os.makedirs(str(dump_path), exist_ok=True)
 
-    png_path = dump_path / (
-        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
-    )
-    htm_path = dump_path / (
-        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm")
-    )
+    png_path = dump_path / ("{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png"))
+    htm_path = dump_path / ("{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm"))
 
     driver.save_screenshot(str(png_path))
 
@@ -149,14 +145,10 @@ def clean_dump(dump_path=DUMP_PATH, keep_days=1):
     for item in dump_path.iterdir():
         if not item.is_file():
             continue
-        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(
-            item.stat().st_mtime
-        )
+        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(item.stat().st_mtime)
         if time_diff > time_threshold:
             logging.info(
-                "remove {path} [{day:,} day(s) old].".format(
-                    path=item.absolute(), day=time_diff.days
-                )
+                "remove {path} [{day:,} day(s) old].".format(path=item.absolute(), day=time_diff.days)
             )
             item.unlink(missing_ok=True)
 
@@ -167,9 +159,7 @@ def get_memory_info(driver):
     ).communicate()[0]
     total = int(str(total, "utf-8").strip()) // 1024
 
-    js_heap = driver.execute_script(
-        "return window.performance.memory.usedJSHeapSize"
-    ) // (1024 * 1024)
+    js_heap = driver.execute_script("return window.performance.memory.usedJSHeapSize") // (1024 * 1024)
 
     return {"total": total, "js_heap": js_heap}
 

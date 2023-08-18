@@ -49,11 +49,7 @@ def recog_audio(audio_url):
 
 
 def resolve_mp3(driver, wait, config):
-    wait.until(
-        EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH, '//iframe[@title="reCAPTCHA"]')
-        )
-    )
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[@title="reCAPTCHA"]')))
     click_xpath(
         driver,
         '//span[contains(@class, "recaptcha-checkbox")]',
@@ -61,19 +57,13 @@ def resolve_mp3(driver, wait, config):
     )
     driver.switch_to.default_content()
     wait.until(
-        EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]')
-        )
+        EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]'))
     )
-    wait.until(
-        EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]'))
-    )
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]')))
     click_xpath(driver, '//button[contains(@title, "確認用の文字を音声")]', move=True)
     time.sleep(0.5)
 
-    audio_url = driver.find_element(
-        By.XPATH, '//audio[@id="audio-source"]'
-    ).get_attribute("src")
+    audio_url = driver.find_element(By.XPATH, '//audio[@id="audio-source"]').get_attribute("src")
 
     text = recog_audio(audio_url)
 
@@ -85,11 +75,7 @@ def resolve_mp3(driver, wait, config):
 
 
 def resolve_img(driver, wait, config):
-    wait.until(
-        EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH, '//iframe[@title="reCAPTCHA"]')
-        )
-    )
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[@title="reCAPTCHA"]')))
     click_xpath(
         driver,
         '//span[contains(@class, "recaptcha-checkbox")]',
@@ -97,13 +83,9 @@ def resolve_img(driver, wait, config):
     )
     driver.switch_to.default_content()
     wait.until(
-        EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]')
-        )
+        EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]'))
     )
-    wait.until(
-        EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]'))
-    )
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]')))
     while True:
         # NOTE: 問題画像を切り抜いてメールで送信
         notify_mail.send(
@@ -116,9 +98,7 @@ def resolve_img(driver, wait, config):
             By.XPATH,
             '//table[contains(@class, "rc-imageselect-table")]//td[@role="button"]',
         )
-        tile_idx_list = list(
-            map(lambda elem: elem.get_attribute("tabindex"), tile_list)
-        )
+        tile_idx_list = list(map(lambda elem: elem.get_attribute("tabindex"), tile_list))
 
         # NOTE: メールを見て人間に選択するべき画像のインデックスを入力してもらう．
         # インデックスは左上を 0 として横方向に 1, 2, ... とする形．
@@ -127,26 +107,20 @@ def resolve_img(driver, wait, config):
         select_str = input("選択タイル(1-9,a-g,end=0): ").strip()
 
         if select_str == "0":
-            if click_xpath(
-                driver, '//button[contains(text(), "スキップ")]', move=True, is_warn=False
-            ):
+            if click_xpath(driver, '//button[contains(text(), "スキップ")]', move=True, is_warn=False):
                 time.sleep(0.5)
                 continue
-            elif click_xpath(
-                driver, '//button[contains(text(), "確認")]', move=True, is_warn=False
-            ):
+            elif click_xpath(driver, '//button[contains(text(), "確認")]', move=True, is_warn=False):
                 time.sleep(0.5)
 
-                if is_display(
-                    driver, '//div[contains(text(), "新しい画像も")]'
-                ) or is_display(driver, '//div[contains(text(), "もう一度")]'):
+                if is_display(driver, '//div[contains(text(), "新しい画像も")]') or is_display(
+                    driver, '//div[contains(text(), "もう一度")]'
+                ):
                     continue
                 else:
                     break
             else:
-                click_xpath(
-                    driver, '//button[contains(text(), "次へ")]', move=True, is_warn=False
-                )
+                click_xpath(driver, '//button[contains(text(), "次へ")]', move=True, is_warn=False)
                 time.sleep(0.5)
                 continue
 

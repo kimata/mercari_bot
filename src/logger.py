@@ -27,9 +27,7 @@ def init(name, level=logging.WARNING, is_str=False):
     if is_str:
         str_io = io.StringIO()
         handler = logging.StreamHandler(str_io)
-        handler.formatter = logging.Formatter(
-            fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        handler.formatter = logging.Formatter(fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S")
         logging.getLogger().addHandler(handler)
 
         return str_io

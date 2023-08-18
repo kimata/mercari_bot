@@ -9,9 +9,7 @@ import os
 import pathlib
 import datetime
 
-ERROR_NOTIFY_FOOTPRINT = (
-    pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
-)
+ERROR_NOTIFY_FOOTPRINT = pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
 
 SIMPLE_TMPL = """\
 [
@@ -77,8 +75,7 @@ def error(token, channel, message, interval_min=10, formatter=format_simple):
     if (
         ERROR_NOTIFY_FOOTPRINT.exists()
         and (
-            datetime.datetime.now()
-            - datetime.datetime.fromtimestamp(ERROR_NOTIFY_FOOTPRINT.stat().st_mtime)
+            datetime.datetime.now() - datetime.datetime.fromtimestamp(ERROR_NOTIFY_FOOTPRINT.stat().st_mtime)
         ).seconds
         < interval_min * 60
     ):
