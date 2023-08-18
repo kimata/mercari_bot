@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
-import time
-import inspect
-import pathlib
-import os
-import shutil
 import datetime
-import subprocess
+import inspect
+import logging
+import os
+import pathlib
 import random
+import subprocess
+import time
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
-DUMP_PATH = str(DATA_PATH / "debug")
+DUMP_PATH = DATA_PATH / "debug"
 
 WAIT_RETRY_COUNT = 1
 
@@ -28,6 +27,8 @@ WAIT_RETRY_COUNT = 1
 def create_driver_impl(profile_name, data_path):
     chrome_data_path = data_path / "chrome"
     log_path = data_path / "log"
+
+    DATA_PATH.mkdir(parents=True, exist_ok=True)
 
     os.makedirs(chrome_data_path, exist_ok=True)
     os.makedirs(log_path, exist_ok=True)
@@ -40,14 +41,7 @@ def create_driver_impl(profile_name, data_path):
     options.add_argument("--lang=ja-JP")
     options.add_argument("--window-size=1920,1080")
 
-    options.add_argument(
-        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"'
-    )
     options.add_argument("--user-data-dir=" + str(chrome_data_path / profile_name))
-
-    # NOTE: 下記がないと，snap で入れた chromium が「LC_ALL: cannot change locale (ja_JP.UTF-8)」
-    # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
-    os.environ["LC_ALL"] = "C"
 
     driver = webdriver.Chrome(
         service=Service(
@@ -72,10 +66,10 @@ def xpath_exists(driver, xpath):
     return len(driver.find_elements(By.XPATH, xpath)) != 0
 
 
-def click_xpath(driver, xpath, wait=None, move=False, is_warn=True):
+def click_xpath(driver, xpath, wait=None, is_warn=True):
     if wait is not None:
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        time.sleep(0.5)
+        time.sleep(0.05)
 
     if xpath_exists(driver, xpath):
         elem = driver.find_element(By.XPATH, xpath)
@@ -123,9 +117,8 @@ def wait_patiently(driver, wait, target):
 
 def dump_page(driver, index, dump_path=DUMP_PATH):
     name = inspect.stack()[1].function.replace("<", "").replace(">", "")
-    dump_path = pathlib.Path(dump_path)
 
-    os.makedirs(str(dump_path), exist_ok=True)
+    dump_path.mkdir(parents=True, exist_ok=True)
 
     png_path = dump_path / ("{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png"))
     htm_path = dump_path / ("{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm"))
@@ -139,13 +132,15 @@ def dump_page(driver, index, dump_path=DUMP_PATH):
 
 
 def clean_dump(dump_path=DUMP_PATH, keep_days=1):
-    dump_path = pathlib.Path(dump_path)
+    if not dump_path.exists():
+        return
+
     time_threshold = datetime.timedelta(keep_days)
 
     for item in dump_path.iterdir():
         if not item.is_file():
             continue
-        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(item.stat().st_mtime)
+        time_diff = time.time() - item.stat().st_mtime
         if time_diff > time_threshold:
             logging.info(
                 "remove {path} [{day:,} day(s) old].".format(path=item.absolute(), day=time_diff.days)
