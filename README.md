@@ -12,17 +12,10 @@
 後述する Docker を使った方法で実行する場合は，インストール不要です．
 
 ```
-sudo apt install -y python3-yaml
-sudo apt install -y python3-coloredlogs
-sudo apt install -y python3-pip
-sudo apt install -y smem
-sudo apt install -y libnss3
-sudo apt install -y chromium-browser
-sudo snap install chromium
-
-pip3 install selenium
-pip3 install webdriver-manager
-pip3 install SpeechRecognition
+# Poetry をインストール済みの場合は次の2行は不要
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+poetry install
 ```
 
 ## 設定
@@ -35,7 +28,7 @@ pip3 install SpeechRecognition
 ## 実行方法
 
 ```
-./mercari_bot.py
+poetry run ./mercari_bot.py
 ```
 
 Docker で実行する場合，下記のようにします．
