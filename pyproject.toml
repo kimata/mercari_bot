@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "mercari_bot"
+version = "0.1.0"
+description = "メルカリの出品アイテムを自動的に値下げするスクリプトです．"
+authors = ["KIMATA Tetsuya <kimata@green-rabbit.net>"]
+
+[tool.poetry.dependencies]
+PyYAML = "^6.0"
+coloredlogs = "^15.0.1"
+docopt = "^0.6.2"
+python = "^3.10"
+selenium = "^4.10.0"
+speechrecognition = "^3.10.0"
+pydub = "^0.25.1"
+slack-sdk = "^3.21.3"
+
+[tool.black]
+target-version = ['py310']
+line-length = 110
+
+[tool.isort]
+profile = "black"
+line_length = 110
+include_trailing_comma = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
