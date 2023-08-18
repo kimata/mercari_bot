@@ -43,7 +43,7 @@ def login_impl(config, driver, wait, profile):
     logging.info("メール・電話番号でログインします．")
     click_xpath(driver, '//span[contains(text(), "メール・電話番号でログイン")]', wait)
 
-    wait.until(EC.presence_of_element_located((By.XPATH, '//mer-heading[@title-label="ログイン"]')))
+    wait.until(EC.presence_of_element_located((By.XPATH, '//h1[contains(text(), "ログイン")]')))
 
     driver.find_element(By.XPATH, '//input[@name="emailOrPhone"]').send_keys(profile["user"])
     driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(profile["pass"])
@@ -57,7 +57,7 @@ def login_impl(config, driver, wait, profile):
         logging.warning("画像認証を突破しました．")
         click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
-    wait.until(EC.presence_of_element_located((By.XPATH, '//mer-heading[@title-label="電話番号の確認"]')))
+    wait.until(EC.presence_of_element_located((By.XPATH, '//h1[contains(text(), "電話番号の確認")]')))
 
     logging.info("認証番号の入力を待ちます．")
     code = input("認証番号: ")

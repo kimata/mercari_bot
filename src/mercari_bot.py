@@ -248,6 +248,8 @@ def iter_items_on_display(driver, wait, profile, item_func_list):
         )
     )
 
+    time.sleep(1)
+
     item_count = len(
         driver.find_elements(
             By.XPATH,
