@@ -1,3 +1,0 @@
-selenium
-SpeechRecognition
-slack_bolt

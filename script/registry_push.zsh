@@ -4,9 +4,6 @@ File Edit Options Buffers Tools Sh-Script Help
 set -x # コマンドの内容を表示
 set -e # エラーが発生したらそこで終了
 
-NAME=bot_mercari_inventory_control
-REGISTRY=registry.green-rabbit.net/library
-
 NAME=mercari_bot
 GROUP=kimata
 REGISTRY=registry.green-rabbit.net:5000
