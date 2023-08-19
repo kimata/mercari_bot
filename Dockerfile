@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install --assume-yes \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 RUN apt-get update && apt-get install --assume-yes \
     language-pack-ja \
@@ -45,6 +45,6 @@ COPY . .
 RUN mkdir -p data
 RUN chown -R ubuntu:ubuntu .
 
-USER ubuntu
+# USER ubuntu
 
 CMD ["./src/mercari_bot.py"]
