@@ -20,9 +20,9 @@ poetry install
 
 ## 設定
 
-ログイン情報や値下げ内容を `config.yml` で指定します．
+ログイン情報や値下げ内容を `config.yaml` で指定します．
 
-`config.example.yml` を名前変更して設定してください．
+`config.example.yaml` を名前変更して設定してください．
 設定方法方はファイルを見ていただけばわかると思います．
 
 ## 実行方法
