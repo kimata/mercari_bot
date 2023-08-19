@@ -11,8 +11,12 @@ build-image:
 
     script:
         - export GIT_SSL_NO_VERIFY=1
+        - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
+        - mv bot_config/mercari_bot.yaml config.yaml
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
+        - git config --global --add safe.directory ${PWD}
+
         - docker pull ${CI_REGISTRY_IMAGE} || true
         - docker build . -t ${CI_REGISTRY_IMAGE}
         - docker push ${CI_REGISTRY_IMAGE}
