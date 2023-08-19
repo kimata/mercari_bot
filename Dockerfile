@@ -7,16 +7,17 @@ FROM ubuntu:22.04
 ENV TZ=Asia/Tokyo
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --assume-yes \
     curl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --assume-yes \
     language-pack-ja \
     python3 python3-pip \
+    smem \
     ./google-chrome-stable_current_amd64.deb \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*

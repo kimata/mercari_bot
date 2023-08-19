@@ -12,6 +12,7 @@
 後述する Docker を使った方法で実行する場合は，インストール不要です．
 
 ```
+sudo apt install --assume-yes smem
 # Poetry をインストール済みの場合は次の2行は不要
 curl -sSL https://install.python-poetry.org | python3 -
 export PATH="$HOME/.local/bin:$PATH"
