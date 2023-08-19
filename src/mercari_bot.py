@@ -329,8 +329,6 @@ def do_work(config, profile):
     return ret_code
 
 
-os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
-
 log_str_io = logger.init("bot.mercari.inventory", level=logging.INFO, is_str_log=True)
 
 logging.info("Start.")
