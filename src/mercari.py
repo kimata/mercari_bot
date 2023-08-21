@@ -7,6 +7,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
+import traceback
 from selenium_util import click_xpath, dump_page
 import captcha
 import random
@@ -19,11 +20,9 @@ def login_impl(config, driver, wait, profile):
     driver.get(LOGIN_URL)
 
     wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="merNavigationTopMenuItem"]')))
-
     time.sleep(1)
 
     click_xpath(driver, '//button[contains(text(), "はじめる")]')
-
     time.sleep(1)
 
     menu_label = driver.find_elements(
@@ -69,6 +68,9 @@ def login_impl(config, driver, wait, profile):
 
     driver.get(LOGIN_URL)
 
+    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="merNavigationTopMenuItem"]')))
+    time.sleep(1)
+
     wait.until(
         EC.element_to_be_clickable(
             (
@@ -84,6 +86,7 @@ def login(config, driver, wait, profile):
     try:
         login_impl(config, driver, wait, profile)
     except:
+        logging.error(traceback.format_exc())
         dump_page(driver, int(random.random() * 100))
         # NOTE: 1回だけリトライする
         logging.error("ログインをリトライします．")
