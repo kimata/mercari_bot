@@ -1,6 +1,13 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base"
-  ]
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:base", ":timezone(Asia/Tokyo)", "group:allNonMajor"],
+    "hostRules": [
+        {
+            "matchHost": "registry.green-rabbit.net:5000",
+            "insecureRegistry": true
+        }
+    ],
+    "automerge": true,
+    "labels": ["renovate"],
+    "schedule": ["every weekend"]
 }
