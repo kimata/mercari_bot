@@ -339,7 +339,7 @@ ret_code = 0
 for profile in config["profile"]:
     ret_code += do_work(config, profile)
 
-if "main" in config:
+if "mail" in config:
     notify_mail.send(config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False)
 if "slack" in config:
     notify_slack.info(
