@@ -19,7 +19,7 @@ def login_impl(config, driver, wait, profile):
     logging.info("ログインを行います．")
     driver.get(LOGIN_URL)
 
-    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="merNavigationTopMenuItem"]')))
+    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="merNavigationTopMenu"]')))
     time.sleep(1)
 
     click_xpath(driver, '//button[contains(text(), "はじめる")]')
@@ -36,7 +36,7 @@ def login_impl(config, driver, wait, profile):
 
     click_xpath(
         driver,
-        '//div[@class="merNavigationTopMenuItem"]//button[contains(text(), "ログイン")]',
+        '//button[contains(text(), "ログイン")]',
         wait,
     )
     logging.info("メール・電話番号でログインします．")
