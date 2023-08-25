@@ -141,7 +141,7 @@ def clean_dump(dump_path=DUMP_PATH, keep_days=1):
     for item in dump_path.iterdir():
         if not item.is_file():
             continue
-        time_diff = time.time() - item.stat().st_mtime
+        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(item.stat().st_mtime)
         if time_diff > time_threshold:
             logging.info(
                 "remove {path} [{day:,} day(s) old].".format(path=item.absolute(), day=time_diff.days)
