@@ -25,12 +25,12 @@ def login_impl(config, driver, wait, profile):
     click_xpath(driver, '//button[contains(text(), "はじめる")]')
     time.sleep(1)
 
-    menu_label = driver.find_elements(
+    account_button = driver.find_elements(
         By.XPATH,
-        '//div[@class="merNavigationTopMenuItem"]//button[contains(text(), "アカウント")]',
+        '//button[@data-testid="account-button"]',
     )
 
-    if len(menu_label) != 0:
+    if len(account_button) != 0:
         logging.info("既にログイン済みでした．")
         return
 
@@ -75,7 +75,7 @@ def login_impl(config, driver, wait, profile):
         EC.element_to_be_clickable(
             (
                 By.XPATH,
-                '//div[@class="merNavigationTopMenuItem"]//button[contains(text(), "アカウント")]',
+                '//button[@data-testid="account-button"]',
             )
         )
     )
