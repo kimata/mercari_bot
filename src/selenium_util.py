@@ -34,21 +34,30 @@ def create_driver_impl(profile_name, data_path):
     os.makedirs(log_path, exist_ok=True)
 
     options = Options()
+
     options.add_argument("--headless")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--no-sandbox")  # for Docker
     options.add_argument("--disable-dev-shm-usage")  # for Docker
 
+    options.add_argument("--disable-desktop-notifications")
+    options.add_argument("--disable-extensions")
+
     options.add_argument("--lang=ja-JP")
     options.add_argument("--window-size=1920,1080")
+
+    # NOTE: これがないと，yodobashi.com がタイムアウトする
+    options.add_argument(
+        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0"'
+    )
 
     options.add_argument("--user-data-dir=" + str(chrome_data_path / profile_name))
 
     driver = webdriver.Chrome(
-        service=Service(
-            log_path=str(log_path / "webdriver.log"),
-            service_args=["--verbose"],
-        ),
+        # service=Service(
+        #     log_path=str(log_path / "webdriver.log"),
+        #     service_args=["--verbose"],
+        # ),
         options=options,
     )
 
