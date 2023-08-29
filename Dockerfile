@@ -45,6 +45,6 @@ COPY . .
 RUN mkdir -p data
 RUN chown -R ubuntu:ubuntu .
 
-# USER ubuntu
+USER ubuntu
 
 CMD ["./src/mercari_bot.py"]
