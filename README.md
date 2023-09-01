@@ -29,7 +29,7 @@ poetry install
 ## 実行方法
 
 ```
-poetry run ./mercari_bot.py
+poetry run ./src/mercari_bot.py
 ```
 
 Docker で実行する場合，下記のようにします．
