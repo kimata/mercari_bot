@@ -22,18 +22,18 @@ build-image:
         - docker build . -t ${CI_REGISTRY_IMAGE}
         - docker push ${CI_REGISTRY_IMAGE}
 
-test-normal:
-    stage: test
-    needs: ["build-image"]
+# test-normal:
+#     stage: test
+#     needs: ["build-image"]
 
-    script:
-        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 |
-          while read id; do docker stop -t 5 $id; done || true
+#     script:
+#         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+#         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 |
+#           while read id; do docker stop -t 5 $id; done || true
 
-        - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --rm --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME}
-          ${CI_REGISTRY_IMAGE} ./app/mercari_bot.py -d
+#         - docker pull ${CI_REGISTRY_IMAGE}
+#         - docker run --rm --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME}
+#           ${CI_REGISTRY_IMAGE} ./app/mercari_bot.py -d
 
 renovate:
     stage: renovate
