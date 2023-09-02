@@ -180,6 +180,7 @@ def execute(config, profile, mode):
             notify_slack.error(
                 config["slack"]["bot_token"],
                 config["slack"]["info"]["channel"],
+                "Mercari price down",
                 traceback.format_exc(),
                 config["slack"]["error"]["interval_min"],
             )
