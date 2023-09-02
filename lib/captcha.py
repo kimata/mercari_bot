@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import time
+import os
+import pathlib
 import tempfile
+import time
 import urllib
 
+import notify_mail
+import pydub
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-
-from speech_recognition import Recognizer, AudioFile
-import pydub
-
 from selenium_util import click_xpath, is_display
-import notify_mail
-
-import pathlib
-import os
+from speech_recognition import AudioFile, Recognizer
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 LOG_PATH = DATA_PATH / "log"
@@ -48,7 +45,7 @@ def recog_audio(audio_url):
         os.unlink(wav_file.name)
 
 
-def resolve_mp3(driver, wait, config):
+def resolve_mp3(driver, wait):
     wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[@title="reCAPTCHA"]')))
     click_xpath(
         driver,

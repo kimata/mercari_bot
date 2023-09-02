@@ -3,8 +3,8 @@
 メルカリに出品中のアイテムの価格を値下げするスクリプトです．
 下記が設定可能です．
 
-- 値下げする幅
-- 値下げを停止する価格
+-   値下げする幅
+-   値下げを停止する価格
 
 ## 準備
 
@@ -29,7 +29,7 @@ poetry install
 ## 実行方法
 
 ```
-poetry run ./src/mercari_bot.py
+poetry run ./app/mercari_bot.py
 ```
 
 Docker で実行する場合，下記のようにします．

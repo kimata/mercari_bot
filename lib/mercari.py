@@ -2,17 +2,111 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import random
+import re
 import time
+import traceback
 
+import captcha
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-
-import traceback
-from selenium_util import click_xpath, dump_page
-import captcha
-import random
+from selenium_util import click_xpath, dump_page, random_sleep
 
 LOGIN_URL = "https://jp.mercari.com"
+ITEM_XPATH = '//div[@data-testid="listed-item-list"]/div[@data-testid="merListItem-container"]'
+
+
+def parse_item(driver, index):
+    item_root = driver.find_element(
+        By.XPATH,
+        ITEM_XPATH + "[" + str(index) + "]//mer-item-object",
+    ).shadow_root
+
+    item_url = driver.find_element(
+        By.XPATH,
+        ITEM_XPATH + "[" + str(index) + "]//a",
+    ).get_attribute("href")
+    item_id = item_url.split("/")[-1]
+
+    name = item_root.find_element(By.CSS_SELECTOR, "div.container").get_attribute("aria-label")
+    price = int(item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value"))
+    is_stop = 0
+    if len(item_root.find_elements(By.CSS_SELECTOR, "span.information-label")) != 0:
+        is_stop = 1
+
+    try:
+        view = int(item_root.find_element(By.CSS_SELECTOR, "mer-icon-eye-outline + span.icon-text").text)
+    except:
+        view = 0
+
+    return {
+        "id": item_id,
+        "name": name,
+        "price": price,
+        "view": view,
+        "is_stop": is_stop,
+    }
+
+
+def iter_items_on_display(driver, wait, profile, mode, item_func_list):
+    click_xpath(
+        driver,
+        '//button[@data-testid="account-button"]',
+        wait,
+    )
+    click_xpath(driver, '//a[contains(text(), "出品した商品")]', wait)
+
+    wait.until(
+        EC.presence_of_element_located(
+            (
+                By.XPATH,
+                ITEM_XPATH,
+            )
+        )
+    )
+
+    time.sleep(1)
+
+    item_count = len(
+        driver.find_elements(
+            By.XPATH,
+            ITEM_XPATH,
+        )
+    )
+
+    logging.info("{item_count}個の出品があります．".format(item_count=item_count))
+
+    list_url = driver.current_url
+    for i in range(1, item_count + 1):
+        item = parse_item(driver, i)
+
+        logging.info(
+            "{name} [{id}] [{price:,}円] [{view:,} view] を処理します．".format(
+                id=item["id"], name=item["name"], price=item["price"], view=item["view"]
+            )
+        )
+
+        driver.execute_script("window.scrollTo(0, 0);")
+        item_link = driver.find_element(
+            By.XPATH,
+            ITEM_XPATH + "[" + str(i) + "]//a",
+        )
+        # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
+        item_link.location_once_scrolled_into_view
+        driver.execute_script("window.scrollTo(0, window.pageYOffset - 200);")
+        item_link.click()
+
+        wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
+
+        for item_func in item_func_list:
+            item_func(driver, wait, profile, mode, item)
+
+        random_sleep(4)
+        driver.get(list_url)
+        wait.until(EC.presence_of_element_located((By.XPATH, ITEM_XPATH)))
+
+        if mode["debug"]:
+            break
 
 
 def login_impl(config, driver, wait, profile):
@@ -52,7 +146,7 @@ def login_impl(config, driver, wait, profile):
     time.sleep(2)
     if len(driver.find_elements(By.XPATH, '//div[@id="recaptchaV2"]')) != 0:
         logging.warning("画像認証が要求されました．")
-        captcha.resolve_mp3(driver, wait, config)
+        captcha.resolve_mp3(driver, wait)
         logging.warning("画像認証を突破しました．")
         click_xpath(driver, '//button[contains(text(), "ログイン")]', wait)
 
