@@ -53,4 +53,6 @@ if notify_log:
             log_str_io.getvalue(),
         )
 
+logging.info("Finish.")
+
 sys.exit(ret_code)

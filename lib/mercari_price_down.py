@@ -171,7 +171,6 @@ def execute(config, profile, mode):
 
         log_memory_usage(driver)
 
-        logging.info("Finish.")
         ret_code = 0
     except:
         logging.error("URL: {url}".format(url=driver.current_url))
