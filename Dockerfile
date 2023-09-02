@@ -47,4 +47,4 @@ RUN chown -R ubuntu:ubuntu .
 
 USER ubuntu
 
-CMD ["./src/mercari_bot.py"]
+CMD ["./app/mercari_bot.py"]
