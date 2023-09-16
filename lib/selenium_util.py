@@ -103,7 +103,9 @@ def is_display(driver, xpath):
 
 
 def random_sleep(sec):
-    time.sleep(sec + sec / 2.0 * random.random())
+    RATIO = 0.8
+
+    time.sleep((sec * RATIO) + (sec * (1 - RATIO) * 2) * random.random())
 
 
 def wait_patiently(driver, wait, target):
