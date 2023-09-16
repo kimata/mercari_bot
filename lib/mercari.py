@@ -166,7 +166,7 @@ def login_impl(config, driver, wait, profile):
             config["slack"]["bot_token"], config["slack"]["captcha"]["channel"]["id"], "text", ts
         )
     else:
-        code = input("SM で送られてきた認証番号を入力してください: ")
+        code = input("SMS で送られてきた認証番号を入力してください: ")
 
     driver.find_element(By.XPATH, '//input[@name="code"]').send_keys(code)
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
