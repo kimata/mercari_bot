@@ -8,6 +8,7 @@ import time
 import traceback
 
 import captcha
+import captcha_slack
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium_util import click_xpath, dump_page, random_sleep
@@ -152,8 +153,21 @@ def login_impl(config, driver, wait, profile):
 
     wait.until(EC.presence_of_element_located((By.XPATH, '//h1[contains(text(), "電話番号の確認")]')))
 
-    logging.info("認証番号の入力を待ちます．")
-    code = input("認証番号: ")
+    logging.info("認証番号の対応を行います．")
+    if "slack" in config:
+        ts = captcha_slack.send_request(
+            config["slack"]["bot_token"],
+            config["slack"]["captcha"]["channel"]["id"],
+            "CAPTCHA",
+            "SMS で送られてきた認証番号を入力してください",
+        )
+
+        code = captcha_slack.recv_response(
+            config["slack"]["bot_token"], config["slack"]["captcha"]["channel"]["id"], "text", ts
+        )
+    else:
+        code = input("SM で送られてきた認証番号を入力してください: ")
+
     driver.find_element(By.XPATH, '//input[@name="code"]').send_keys(code)
     click_xpath(driver, '//button[contains(text(), "認証して完了する")]', wait)
 
