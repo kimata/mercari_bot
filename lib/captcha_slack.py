@@ -40,7 +40,7 @@ def send_challenge_image(token, ch_id, title, img, text):
         client = slack_sdk.WebClient(token=token)
 
         with tempfile.TemporaryDirectory() as dname:
-            img_path = os.path.join(dname, "error.png")
+            img_path = os.path.join(dname, "captcha.png")
             img.save(img_path)
 
             resp = client.files_upload_v2(channel=ch_id, file=img_path, title=title, initial_comment=text)
