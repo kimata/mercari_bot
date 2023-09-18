@@ -174,8 +174,8 @@ def login_impl(config, driver, wait, profile):
 
     driver.get(LOGIN_URL)
 
-    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="merNavigationTopMenuItem"]')))
     time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="merNavigationTopMenu"]')))
 
     wait.until(
         EC.element_to_be_clickable(
