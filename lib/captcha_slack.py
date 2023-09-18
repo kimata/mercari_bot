@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-画像キャプチャを Slack のやり取りで解決します．
+画像 CAPTCHA や SMS 認証を Slack のやり取りで解決します．
 
 Usage:
   captch_slack.py [-c CONFIG]
