@@ -134,8 +134,6 @@ def login_impl(config, driver, wait, profile):
         '//button[contains(text(), "ログイン")]',
         wait,
     )
-    # logging.info("メール・電話番号でログインします．")
-    # click_xpath(driver, '//span[contains(text(), "メール・電話番号でログイン")]', wait)
 
     wait.until(EC.presence_of_element_located((By.XPATH, '//h1[contains(text(), "ログイン")]')))
 
