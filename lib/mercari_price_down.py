@@ -89,12 +89,15 @@ def execute_item(driver, wait, profile, mode, item):
         logging.info("更新してから {hour} 時間しか経過していないため，スキップします．".format(hour=modified_hour))
         return
 
-    favorite_count = int(
-        driver.find_element(
-            By.XPATH,
-            '//mer-icon-button[@data-testid="icon-heart-button"]',
-        ).get_attribute("label")
-    )
+    favorite_text = driver.find_element(
+        By.XPATH,
+        '//mer-icon-button[@data-testid="icon-heart-button"]',
+    ).get_attribute("label")
+
+    if re.search(r"\d+", favorite_text):
+        favorite_count = int(favorite_text)
+    else:
+        favorite_count = 0
 
     click_xpath(driver, '//div[@data-testid="checkout-button"]')
     wait_patiently(driver, wait, EC.title_contains("商品の情報を編集"))
