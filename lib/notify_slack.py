@@ -3,10 +3,12 @@
 
 import json
 import logging
+import math
 import os
 import pathlib
 import tempfile
 import threading
+import time
 
 import footprint
 import slack_sdk
@@ -20,9 +22,9 @@ SIMPLE_TMPL = """\
 [
     {{
         "type": "header",
-    "text": {{
+        "text": {{
             "type": "plain_text",
-        "text": "{title}",
+            "text": "{title}",
             "emoji": true
         }}
     }},
@@ -30,8 +32,8 @@ SIMPLE_TMPL = """\
         "type": "section",
         "text": {{
             "type": "mrkdwn",
-        "text": {message}
-    }}
+            "text": {message}
+        }}
     }}
 ]
 """
@@ -48,7 +50,7 @@ def format_simple(title, message):
 def send(token, ch_name, message):
     try:
         client = slack_sdk.WebClient(token=token)
-        client.chat_postMessage(
+        return client.chat_postMessage(
             channel=ch_name,
             text=message["text"],
             blocks=message["json"],
@@ -63,12 +65,21 @@ def split_send(token, ch_name, title, message, formatter=format_simple):
     logging.info("Post slack channel: {ch_name}".format(ch_name=ch_name))
 
     message_lines = message.splitlines()
-    for i in range(0, len(message_lines), LINE_SPLIT):
+    total = math.ceil(len(message_lines) / LINE_SPLIT)
+    i = 0
+    for n in range(0, len(message_lines), LINE_SPLIT):
+        if total == 1:
+            split_title = title
+        else:
+            split_title = "{title} ({i}/{total})".format(title=title, i=i + 1, total=total)
+
         send(
             token,
             ch_name,
-            formatter(title, "\n".join(message_lines[i : i + LINE_SPLIT])),
+            formatter(split_title, "\n".join(message_lines[n : n + LINE_SPLIT])),
         )
+
+        time.sleep(1)
 
 
 def info(token, ch_name, name, message, formatter=format_simple):
@@ -100,12 +111,12 @@ def error_img(token, ch_id, title, img, text):
 def error(
     token,
     ch_name,
-    name,
+    title,
     message,
     interval_min=60,
     formatter=format_simple,
 ):
-    title = "Error: " + name
+    title = "Error: " + title
 
     hist_add(message)
 
@@ -122,13 +133,13 @@ def error_with_image(
     token,
     ch_name,
     ch_id,
-    name,
+    title,
     message,
     attatch_img,
     interval_min=10,
     formatter=format_simple,
 ):  # def error_with_image
-    title = "Error: " + name
+    title = "Error: " + title
 
     hist_add(message)
 
