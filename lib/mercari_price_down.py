@@ -61,6 +61,23 @@ def get_modified_hour(driver):
         return -1
 
 
+def get_discount_step(profile, price, shipping_fee, favorite_count):
+    for discount_info in reversed(sorted(profile["discount"], key=lambda x: x["favorite_count"])):
+        if favorite_count >= discount_info["favorite_count"]:
+            if price >= discount_info["threshold"]:
+                return discount_info["step"]
+            else:
+                logging.info(
+                    "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(
+                        price=price, shipping=shipping_fee
+                    )
+                )
+                return None
+
+    logging.info("イイねの数({favorite_count})が条件を満たさなかったので，スキップします．".format(favorite_count=favorite_count))
+    return None
+
+
 def execute_item(driver, wait, profile, mode, item):
     if item["is_stop"] != 0:
         logging.info("公開停止中のため，スキップします．")
@@ -72,11 +89,12 @@ def execute_item(driver, wait, profile, mode, item):
         logging.info("更新してから {hour} 時間しか経過していないため，スキップします．".format(hour=modified_hour))
         return
 
-    logging.info("{down_step}円の値下げを行います．".format(down_step=profile["price"]["down_step"]))
-
-    if item["price"] < profile["price"]["threshold"]:
-        logging.info("現在価格が{price:,}円のため，スキップします．".format(price=item["price"]))
-        return
+    favorite_count = int(
+        driver.find_element(
+            By.XPATH,
+            '//mer-icon-button[@data-testid="icon-heart-button"]',
+        ).get_attribute("label")
+    )
 
     click_xpath(driver, '//div[@data-testid="checkout-button"]')
     wait_patiently(driver, wait, EC.title_contains("商品の情報を編集"))
@@ -101,20 +119,18 @@ def execute_item(driver, wait, profile, mode, item):
 
     price = item["price"] - shipping_fee
 
-    if price < profile["price"]["threshold"]:
-        logging.info(
-            "現在価格が{price:,}円 (送料: {shipping:,}円) のため，スキップします．".format(price=price, shipping=shipping_fee)
-        )
-        return
-
     cur_price = int(driver.find_element(By.XPATH, '//input[@name="price"]').get_attribute("value"))
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
+    discount_step = get_discount_step(profile, price, shipping_fee, favorite_count)
+    if discount_step is None:
+        return
+
     if mode["debug"]:
         new_price = price
     else:
-        new_price = int((price - profile["price"]["down_step"]) / 10) * 10  # 10円単位に丸める
+        new_price = int((price - discount_step) / 10) * 10  # 10円単位に丸める
 
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.CONTROL + "a")
     driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.BACK_SPACE)
