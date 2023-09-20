@@ -91,8 +91,8 @@ def execute_item(driver, wait, profile, mode, item):
 
     favorite_text = driver.find_element(
         By.XPATH,
-        '//mer-icon-button[@data-testid="icon-heart-button"]',
-    ).get_attribute("label")
+        '//div[@data-testid="icon-heart-button"]/button',
+    ).get_attribute("aria-label")
 
     if re.search(r"\d+", favorite_text):
         favorite_count = int(favorite_text)
