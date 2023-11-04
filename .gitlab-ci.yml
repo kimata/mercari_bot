@@ -1,4 +1,4 @@
-image: docker:24.0.6
+image: docker:24.0.7
 
 stages:
     - build-image
