@@ -78,7 +78,7 @@ def split_send(token, ch_name, title, message, formatter=format_simple):
             ch_name,
             formatter(split_title, "\n".join(message_lines[n : n + LINE_SPLIT])),
         )
-
+        i += 1
         time.sleep(1)
 
 
