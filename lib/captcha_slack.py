@@ -52,7 +52,7 @@ def send_challenge_image(token, ch_id, title, img, text):
 
 
 def recv_response_image(token, ch_id, file_id, timeout_sec):
-    logging.info("CAPTCHA: receive response [image]")
+    logging.info("CAPTCHA: wait response [image]")
 
     time.sleep(WAIT_SEC)
     try:
@@ -84,13 +84,15 @@ def recv_response_image(token, ch_id, file_id, timeout_sec):
 
         resp = client.conversations_replies(channel=ch_id, ts=thread_ts)
 
+        logging.info("CAPTCHA: receive response [image]")
+
         return resp["messages"][-1]["text"].strip()
     except slack_sdk.errors.SlackApiError as e:
         logging.warning(e.response["error"])
 
 
 def recv_response_text(token, ch_id, ts, timeout_sec):
-    logging.info("CAPTCHA: receive response [text]")
+    logging.info("CAPTCHA: wait response [text]")
 
     time.sleep(WAIT_SEC)
     try:
@@ -117,6 +119,8 @@ def recv_response_text(token, ch_id, ts, timeout_sec):
             return None
 
         resp = client.conversations_replies(channel=ch_id, ts=thread_ts)
+
+        logging.info("CAPTCHA: receive response [text]")
 
         return resp["messages"][-1]["text"].strip()
     except slack_sdk.errors.SlackApiError as e:
