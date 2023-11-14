@@ -50,14 +50,13 @@ def resolve_mp3(driver, wait):
     click_xpath(
         driver,
         '//span[contains(@class, "recaptcha-checkbox")]',
-        move=True,
     )
     driver.switch_to.default_content()
     wait.until(
         EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]'))
     )
     wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@id="rc-imageselect-target"]')))
-    click_xpath(driver, '//button[contains(@title, "確認用の文字を音声")]', move=True)
+    click_xpath(driver, '//button[contains(@title, "確認用の文字を音声")]')
     time.sleep(0.5)
 
     audio_url = driver.find_element(By.XPATH, '//audio[@id="audio-source"]').get_attribute("src")
@@ -73,11 +72,7 @@ def resolve_mp3(driver, wait):
 
 def resolve_img(driver, wait, config):
     wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[@title="reCAPTCHA"]')))
-    click_xpath(
-        driver,
-        '//span[contains(@class, "recaptcha-checkbox")]',
-        move=True,
-    )
+    click_xpath(driver, '//span[contains(@class, "recaptcha-checkbox")]')
     driver.switch_to.default_content()
     wait.until(
         EC.frame_to_be_available_and_switch_to_it((By.XPATH, '//iframe[contains(@title, "reCAPTCHA による確認")]'))
@@ -104,10 +99,10 @@ def resolve_img(driver, wait, config):
         select_str = input("選択タイル(1-9,a-g,end=0): ").strip()
 
         if select_str == "0":
-            if click_xpath(driver, '//button[contains(text(), "スキップ")]', move=True, is_warn=False):
+            if click_xpath(driver, '//button[contains(text(), "スキップ")]', is_warn=False):
                 time.sleep(0.5)
                 continue
-            elif click_xpath(driver, '//button[contains(text(), "確認")]', move=True, is_warn=False):
+            elif click_xpath(driver, '//button[contains(text(), "確認")]', is_warn=False):
                 time.sleep(0.5)
 
                 if is_display(driver, '//div[contains(text(), "新しい画像も")]') or is_display(
@@ -117,7 +112,7 @@ def resolve_img(driver, wait, config):
                 else:
                     break
             else:
-                click_xpath(driver, '//button[contains(text(), "次へ")]', move=True, is_warn=False)
+                click_xpath(driver, '//button[contains(text(), "次へ")]', is_warn=False)
                 time.sleep(0.5)
                 continue
 
@@ -134,7 +129,6 @@ def resolve_img(driver, wait, config):
                 '//table[contains(@class, "rc-imageselect-table")]//td[@tabindex="{index}"]'.format(
                     index=tile_idx_list[idx - 1]
                 ),
-                move=True,
             )
         time.sleep(0.5)
 
