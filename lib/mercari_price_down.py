@@ -19,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium_util import (
     clean_dump,
+    clear_cache,
     click_xpath,
     create_driver,
     dump_page,
@@ -193,6 +194,8 @@ def execute_item(driver, wait, profile, mode, item):
 
 def execute(config, profile, mode):
     driver = create_driver(profile["name"])
+
+    clear_cache(driver)
 
     wait = WebDriverWait(driver, WAIT_TIMEOUT_SEC)
     ret_code = -1

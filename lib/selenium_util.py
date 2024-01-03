@@ -143,6 +143,10 @@ def dump_page(driver, index, dump_path=DUMP_PATH):
     logging.info("page dump: {index:02d}.".format(index=index))
 
 
+def clear_cache(driver):
+    driver.execute_cdp_cmd("Network.clearBrowserCache", {})
+
+
 def clean_dump(dump_path=DUMP_PATH, keep_days=1):
     if not dump_path.exists():
         return
