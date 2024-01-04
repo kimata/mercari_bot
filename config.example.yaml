@@ -29,7 +29,8 @@ profile:
 #     from: Mercari Bot
 
 #     info:
-#         channel: "#mercari"
+#         channel:
+#             name: "#mercari"
 
 #     captcha:
 #         channel:

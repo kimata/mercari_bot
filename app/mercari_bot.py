@@ -48,7 +48,7 @@ if notify_log:
     if "slack" in config:
         notify_slack.info(
             config["slack"]["bot_token"],
-            config["slack"]["info"]["channel"],
+            config["slack"]["info"]["channel"]["name"],
             "Mercari price change",
             log_str_io.getvalue(),
         )
