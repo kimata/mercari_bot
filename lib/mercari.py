@@ -9,6 +9,7 @@ import traceback
 
 import captcha
 import captcha_slack
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium_util import click_xpath, dump_page, random_sleep
@@ -80,12 +81,13 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
             try:
                 item_func(driver, wait, profile, mode, item)
                 break
-            except:
-                logging.error(traceback.format_exc())
+            except TimeoutException:
                 fail_count += 1
 
                 if fail_count > RETRY_COUNT:
                     raise
+
+                logging.warning("タイムアウトしたので，リトライします．")
 
                 if driver.current_url != item_url:
                     driver.back()
