@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import io
 import logging
 import logging.handlers
 import os
@@ -12,6 +13,7 @@ import traceback
 
 import mercari
 import notify_slack
+import PIL.Image
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -200,12 +202,17 @@ def execute(config, profile, mode):
         logging.error(traceback.format_exc())
 
         if "slack" in config:
-            notify_slack.error(
+            notify_slack.error_with_image(
                 config["slack"]["bot_token"],
-                config["slack"]["info"]["channel"],
-                "Mercari price down",
+                config["slack"]["error"]["channel"]["name"],
+                config["slack"]["error"]["channel"]["id"],
+                config["slack"]["from"],
                 traceback.format_exc(),
-                config["slack"]["error"]["interval_min"],
+                {
+                    "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
+                    "text": "エラー時のスクリーンショット",
+                },
+                interval_min=config["slack"]["error"]["interval_min"],
             )
 
         dump_page(driver, int(random.random() * 100))
