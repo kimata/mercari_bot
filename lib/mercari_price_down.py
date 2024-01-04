@@ -12,7 +12,6 @@ import traceback
 
 import mercari
 import notify_slack
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -103,20 +102,7 @@ def execute_item(driver, wait, profile, mode, item):
 
     click_xpath(driver, '//div[@data-testid="checkout-button"]')
 
-    try:
-        wait.until(EC.title_contains("商品の情報を編集"))
-    except TimeoutException:
-        if (
-            len(
-                driver.find_elements(
-                    By.XPATH,
-                    '//aside[@aria-label="この商品の編集はアプリをご利用ください"]',
-                )
-            )
-            != 0
-        ):
-            logging.info("スマホでしか編集できないアイテムなので，スキップします．")
-            return
+    wait.until(EC.title_contains("商品の情報を編集"))
 
     # NOTE: 食品などの場合，「出品情報の確認」の表示が出るので，「OK」ボタンを押す
     if len(driver.find_elements(By.XPATH, '//button[contains(text(), "OK")]')) != 0:
