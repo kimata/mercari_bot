@@ -92,6 +92,7 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
                     time.sleep(1)
                 if driver.current_url != item_url:
                     driver.get(item_url)
+                random_sleep(5)
 
 
 def iter_items_on_display(driver, wait, profile, mode, item_func_list):
