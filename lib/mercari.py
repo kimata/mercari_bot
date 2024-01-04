@@ -13,6 +13,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium_util import click_xpath, dump_page, random_sleep
 
+RETRY_COUNT = 3
+
 LOGIN_URL = "https://jp.mercari.com"
 ITEM_XPATH = '//div[@data-testid="listed-item-list"]/div[@data-testid="merListItem-container"]'
 
@@ -49,6 +51,49 @@ def parse_item(driver, index):
     }
 
 
+def execute_item(driver, wait, profile, mode, index, item_func_list):
+    item = parse_item(driver, index)
+
+    logging.info(
+        "{name} [{id}] [{price:,}円] [{view:,} view] を処理します．".format(
+            id=item["id"], name=item["name"], price=item["price"], view=item["view"]
+        )
+    )
+
+    driver.execute_script("window.scrollTo(0, 0);")
+    item_link = driver.find_element(
+        By.XPATH,
+        ITEM_XPATH + "[" + str(index) + "]//a",
+    )
+    # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
+    item_link.location_once_scrolled_into_view
+    driver.execute_script("window.scrollTo(0, window.pageYOffset - 200);")
+    item_link.click()
+
+    wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
+
+    item_url = driver.current_url
+
+    fail_count = 0
+    for item_func in item_func_list:
+        while True:
+            try:
+                item_func(driver, wait, profile, mode, item)
+                break
+            except:
+                logging.error(traceback.format_exc())
+                fail_count += 1
+
+                if fail_count > RETRY_COUNT:
+                    raise
+
+                if driver.current_url != item_url:
+                    driver.back()
+                    time.sleep(1)
+                if driver.current_url != item_url:
+                    driver.get(item_url)
+
+
 def iter_items_on_display(driver, wait, profile, mode, item_func_list):
     click_xpath(
         driver,
@@ -79,35 +124,14 @@ def iter_items_on_display(driver, wait, profile, mode, item_func_list):
 
     list_url = driver.current_url
     for i in range(1, item_count + 1):
-        item = parse_item(driver, i)
-
-        logging.info(
-            "{name} [{id}] [{price:,}円] [{view:,} view] を処理します．".format(
-                id=item["id"], name=item["name"], price=item["price"], view=item["view"]
-            )
-        )
-
-        driver.execute_script("window.scrollTo(0, 0);")
-        item_link = driver.find_element(
-            By.XPATH,
-            ITEM_XPATH + "[" + str(i) + "]//a",
-        )
-        # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
-        item_link.location_once_scrolled_into_view
-        driver.execute_script("window.scrollTo(0, window.pageYOffset - 200);")
-        item_link.click()
-
-        wait.until(EC.title_contains(re.sub(" +", " ", item["name"])))
-
-        for item_func in item_func_list:
-            item_func(driver, wait, profile, mode, item)
-
-        random_sleep(4)
-        driver.get(list_url)
-        wait.until(EC.presence_of_element_located((By.XPATH, ITEM_XPATH)))
+        execute_item(driver, wait, profile, mode, i, item_func_list)
 
         if mode["debug"]:
             break
+
+        random_sleep(10)
+        driver.get(list_url)
+        wait.until(EC.presence_of_element_located((By.XPATH, ITEM_XPATH)))
 
 
 def login_impl(config, driver, wait, profile):
