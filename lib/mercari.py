@@ -17,34 +17,38 @@ from selenium_util import click_xpath, dump_page, random_sleep
 RETRY_COUNT = 3
 
 LOGIN_URL = "https://jp.mercari.com"
-ITEM_XPATH = '//div[@data-testid="listed-item-list"]/div[@data-testid="merListItem-container"]'
+ITEM_LIST_XPATH = '//div[@data-testid="listed-item-list"]//div[contains(@class, "merListItem")]'
 
 
 def parse_item(driver, index):
-    item_root = driver.find_element(
-        By.XPATH,
-        ITEM_XPATH + "[" + str(index) + "]//mer-item-object",
-    ).shadow_root
+    item_xpath = ITEM_LIST_XPATH + "[" + str(index) + "]"
+    item_url_xpath = item_xpath + "//a"
+    item_name_xpath = item_xpath + '//span[contains(@class, "itemLabel")]'
+    item_price_xpath = item_xpath + '//span[@class="merPrice"]/span[contains(@class, "number")]'
+    item_view_xpath = (
+        item_xpath + '//mer-icon-eye-outline/following-sibling::span[contains(@class, "iconText")]'
+    )
+    item_private_xpath = item_xpath + '//span[contains(@class, "informationLabel")]'
 
-    item_url = driver.find_element(
-        By.XPATH,
-        ITEM_XPATH + "[" + str(index) + "]//a",
-    ).get_attribute("href")
+    item_url = driver.find_element(By.XPATH, item_url_xpath).get_attribute("href")
     item_id = item_url.split("/")[-1]
 
-    name = item_root.find_element(By.CSS_SELECTOR, "div.container").get_attribute("aria-label")
-    price = int(item_root.find_element(By.CSS_SELECTOR, "mer-price").get_attribute("value"))
+    name = driver.find_element(By.XPATH, item_name_xpath).text
+    price = int(driver.find_element(By.XPATH, item_price_xpath).text.replace(",", ""))
     is_stop = 0
-    if len(item_root.find_elements(By.CSS_SELECTOR, "span.information-label")) != 0:
+
+    if len(driver.find_elements(By.XPATH, item_private_xpath)) != 0:
+
         is_stop = 1
 
     try:
-        view = int(item_root.find_element(By.CSS_SELECTOR, "mer-icon-eye-outline + span.icon-text").text)
+        view = int(driver.find_element(By.XPATH, item_view_xpath).text)
     except:
         view = 0
 
     return {
         "id": item_id,
+        "url": item_url,
         "name": name,
         "price": price,
         "view": view,
@@ -64,7 +68,7 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
     driver.execute_script("window.scrollTo(0, 0);")
     item_link = driver.find_element(
         By.XPATH,
-        ITEM_XPATH + "[" + str(index) + "]//a",
+        ITEM_LIST_XPATH + "[" + str(index) + "]//a",
     )
     # NOTE: アイテムにスクロールしてから，ヘッダーに隠れないようちょっと前に戻す
     item_link.location_once_scrolled_into_view
@@ -109,7 +113,7 @@ def iter_items_on_display(driver, wait, profile, mode, item_func_list):
         EC.presence_of_element_located(
             (
                 By.XPATH,
-                ITEM_XPATH,
+                ITEM_LIST_XPATH,
             )
         )
     )
@@ -119,7 +123,7 @@ def iter_items_on_display(driver, wait, profile, mode, item_func_list):
     item_count = len(
         driver.find_elements(
             By.XPATH,
-            ITEM_XPATH,
+            ITEM_LIST_XPATH,
         )
     )
 
@@ -134,7 +138,7 @@ def iter_items_on_display(driver, wait, profile, mode, item_func_list):
 
         random_sleep(10)
         driver.get(list_url)
-        wait.until(EC.presence_of_element_located((By.XPATH, ITEM_XPATH)))
+        wait.until(EC.presence_of_element_located((By.XPATH, ITEM_LIST_XPATH)))
 
 
 def login_impl(config, driver, wait, profile):
