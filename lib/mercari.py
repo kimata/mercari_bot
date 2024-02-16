@@ -152,6 +152,8 @@ def iter_items_on_display(driver, wait, profile, mode, item_func_list):
         driver.get(list_url)
         wait.until(EC.presence_of_element_located((By.XPATH, ITEM_LIST_XPATH)))
 
+        expand_all(driver, wait)
+
 
 def login_impl(config, driver, wait, profile):
     logging.info("ログインを行います．")
