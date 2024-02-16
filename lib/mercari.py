@@ -101,6 +101,16 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
                 random_sleep(5)
 
 
+def expand_all(driver, wait):
+    MORE_BUTTON_XPATH = '//div[contains(@class, "merButton")]/button[contains(text(), "もっと見る")]'
+
+    while len(driver.find_elements(By.XPATH, MORE_BUTTON_XPATH)) != 0:
+        click_xpath(driver, MORE_BUTTON_XPATH, wait)
+
+        wait.until(EC.presence_of_all_elements_located)
+        time.sleep(2)
+
+
 def iter_items_on_display(driver, wait, profile, mode, item_func_list):
     click_xpath(
         driver,
@@ -119,6 +129,8 @@ def iter_items_on_display(driver, wait, profile, mode, item_func_list):
     )
 
     time.sleep(1)
+
+    expand_all(driver, wait)
 
     item_count = len(
         driver.find_elements(
