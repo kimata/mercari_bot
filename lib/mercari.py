@@ -100,6 +100,8 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
                     driver.get(item_url)
                 random_sleep(5)
 
+        time.sleep(3)
+
 
 def expand_all(driver, wait):
     MORE_BUTTON_XPATH = '//div[contains(@class, "merButton")]/button[contains(text(), "もっと見る")]'
