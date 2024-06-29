@@ -84,6 +84,7 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
         while True:
             try:
                 item_func(driver, wait, profile, mode, item)
+                fail_count = 0
                 break
             except TimeoutException:
                 fail_count += 1
@@ -100,7 +101,7 @@ def execute_item(driver, wait, profile, mode, index, item_func_list):
                     driver.get(item_url)
                 random_sleep(5)
 
-        time.sleep(3)
+        time.sleep(10)
 
 
 def expand_all(driver, wait):

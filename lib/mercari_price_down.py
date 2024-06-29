@@ -33,6 +33,8 @@ WAIT_TIMEOUT_SEC = 15
 WAIT_RETRY_COUNT = 1
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
+DUMP_PATH = DATA_PATH / "debug"
+
 LOG_PATH = DATA_PATH / "log"
 
 CHROME_DATA_PATH = DATA_PATH / "chrome"
@@ -180,8 +182,8 @@ def execute_item(driver, wait, profile, mode, item):
     )
 
 
-def execute(config, profile, mode):
-    driver = create_driver(profile["name"])
+def execute(config, profile, data_path, mode):
+    driver = create_driver(profile["name"], data_path)
 
     clear_cache(driver)
 
@@ -215,7 +217,7 @@ def execute(config, profile, mode):
                 interval_min=config["slack"]["error"]["interval_min"],
             )
 
-        dump_page(driver, int(random.random() * 100))
+        dump_page(driver, int(random.random() * 100), DUMP_PATH)
         clean_dump()
 
     driver.close()

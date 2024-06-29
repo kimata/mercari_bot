@@ -20,11 +20,16 @@ from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
+import os
+
 import logger
 import mercari_price_down
 import notify_mail
 import notify_slack
 from config import load_config
+
+DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
+
 
 args = docopt(__doc__)
 
@@ -40,7 +45,7 @@ config = load_config()
 
 ret_code = 0
 for profile in config["profile"]:
-    ret_code += mercari_price_down.execute(config, profile, mode)
+    ret_code += mercari_price_down.execute(config, profile, DATA_PATH, mode)
 
 if notify_log:
     if "mail" in config:
