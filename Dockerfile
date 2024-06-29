@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install --assume-yes \
 RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 RUN apt-get update && apt-get install --assume-yes \
-    language-pack-ja \
+    language-pack-ja tzdata \
     python3 python3-pip \
     smem \
     ./google-chrome-stable_current_amd64.deb \
