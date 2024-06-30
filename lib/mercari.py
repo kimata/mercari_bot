@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
+import pathlib
 import random
 import re
 import time
@@ -18,6 +20,9 @@ RETRY_COUNT = 3
 
 LOGIN_URL = "https://jp.mercari.com"
 ITEM_LIST_XPATH = '//div[@data-testid="listed-item-list"]//div[contains(@class, "merListItem")]'
+
+DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
+DUMP_PATH = DATA_PATH / "debug"
 
 
 def parse_item(driver, index):
@@ -241,7 +246,7 @@ def login(config, driver, wait, profile):
         login_impl(config, driver, wait, profile)
     except:
         logging.error(traceback.format_exc())
-        dump_page(driver, int(random.random() * 100))
+        dump_page(driver, int(random.random() * 100), DUMP_PATH)
         # NOTE: 1回だけリトライする
         logging.error("ログインをリトライします．")
         time.sleep(10)
