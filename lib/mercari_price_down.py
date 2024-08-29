@@ -38,8 +38,6 @@ DUMP_PATH = DATA_PATH / "debug"
 LOG_PATH = DATA_PATH / "log"
 
 CHROME_DATA_PATH = DATA_PATH / "chrome"
-RECORD_PATH = str(DATA_PATH / "record")
-DUMP_PATH = str(DATA_PATH / "debug")
 
 DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
 HIST_CSV_PATH = str(LOG_PATH / "history.csv")
