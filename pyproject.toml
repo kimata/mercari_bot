@@ -13,7 +13,7 @@ selenium = "^4.10.0"
 speechrecognition = "^3.10.0"
 pydub = "^0.25.1"
 slack-sdk = "^3.21.3"
-pillow = "^10.2.0"
+pillow = "^11.0.0"
 
 [tool.black]
 target-version = ['py310']
