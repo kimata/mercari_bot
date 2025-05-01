@@ -22,11 +22,11 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
 import os
 
-import logger
 import mercari_price_down
-import notify_mail
-import notify_slack
-from config import load_config
+import my_lib.config
+import my_lib.logger
+import my_lib.notify.mail
+import my_lib.notify.slack
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 
@@ -37,11 +37,13 @@ config_file = args["-c"]
 notify_log = args["-l"]
 mode = {"debug": args["-d"]}
 
-log_str_io = logger.init("bot.mercari.inventory", level=logging.INFO, is_str_log=True)
+log_str_io = my_lib.logger.init(
+    "bot.mercari.inventory", level=logging.INFO, is_str_log=True
+)
 
 logging.info("Start.")
 
-config = load_config()
+config = my_lib.config.load()
 
 ret_code = 0
 for profile in config["profile"]:
@@ -49,9 +51,11 @@ for profile in config["profile"]:
 
 if notify_log:
     if "mail" in config:
-        notify_mail.send(config, "<br />".join(log_str_io.getvalue().splitlines()), is_log_message=False)
+        my_lib.notify.mail.send(
+            config, "<br />".join(log_str_io.getvalue().splitlines())
+        )
     if "slack" in config:
-        notify_slack.info(
+        my_lib.notify.slack.info(
             config["slack"]["bot_token"],
             config["slack"]["info"]["channel"]["name"],
             "Mercari price change",
