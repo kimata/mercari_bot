@@ -1,4 +1,4 @@
-image: docker:27.5.1
+image: registry.green-rabbit.net:5000/kimata/local_ubuntu:241105B
 
 stages:
     - build-image
@@ -8,19 +8,21 @@ stages:
 build-image:
     stage: build-image
 
-    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812D
+    variables:
+        BUILDER: builder
 
-    script:
-        - export GIT_SSL_NO_VERIFY=1
-        - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
-        - mv bot_config/mercari_bot.yaml config.yaml
-        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
-        - mv private_font/* font
-        - git config --global --add safe.directory ${PWD}
+        script:
+            # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
+            - export GIT_SSL_NO_VERIFY=1
+            - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
+            - mv bot_config/mercari_bot.yaml config.yaml
+            - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+            - mv private_font/* font
+            - git config --global --add safe.directory ${PWD}
 
-        - docker pull ${CI_REGISTRY_IMAGE} || true
-        - docker build . -t ${CI_REGISTRY_IMAGE}
-        - docker push ${CI_REGISTRY_IMAGE}
+            - docker buildx create --name ${BUILDER} --use --config /etc/buildkitd.toml
+            - docker buildx use ${BUILDER}
+            - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
 
 # test-normal:
 #     stage: test
