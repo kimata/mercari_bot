@@ -1,0 +1,4 @@
+formatter:
+  type: basic
+  indent: 4
+  retain_line_breaks: true

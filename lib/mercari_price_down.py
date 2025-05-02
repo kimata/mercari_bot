@@ -12,31 +12,20 @@ import time
 import traceback
 
 import mercari
-import notify_slack
+import my_lib.notify.slack
+import my_lib.selenium_util
 import PIL.Image
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium_util import (
-    clean_dump,
-    clear_cache,
-    click_xpath,
-    create_driver,
-    dump_page,
-    log_memory_usage,
-    random_sleep,
-    wait_patiently,
-)
+import selenium.webdriver.common.by
+import selenium.webdriver.common.keys
+import selenium.webdriver.support
+import selenium.webdriver.support.wait
 
 WAIT_TIMEOUT_SEC = 15
 WAIT_RETRY_COUNT = 1
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 DUMP_PATH = DATA_PATH / "debug"
-
 LOG_PATH = DATA_PATH / "log"
-
 CHROME_DATA_PATH = DATA_PATH / "chrome"
 
 DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
@@ -45,7 +34,7 @@ HIST_CSV_PATH = str(LOG_PATH / "history.csv")
 
 def get_modified_hour(driver):
     modified_text = driver.find_element(
-        By.XPATH,
+        selenium.webdriver.common.by.By.XPATH,
         '//div[@id="item-info"]//div[contains(@class,"merShowMore")]'
         + '/following-sibling::p[contains(@class, "merText")]',
     ).text
@@ -65,7 +54,9 @@ def get_modified_hour(driver):
 
 
 def get_discount_step(profile, price, shipping_fee, favorite_count):
-    for discount_info in reversed(sorted(profile["discount"], key=lambda x: x["favorite_count"])):
+    for discount_info in reversed(
+        sorted(profile["discount"], key=lambda x: x["favorite_count"])
+    ):
         if favorite_count >= discount_info["favorite_count"]:
             if price >= discount_info["threshold"]:
                 return discount_info["step"]
@@ -77,7 +68,11 @@ def get_discount_step(profile, price, shipping_fee, favorite_count):
                 )
                 return None
 
-    logging.info("イイねの数({favorite_count})が条件を満たさなかったので，スキップします．".format(favorite_count=favorite_count))
+    logging.info(
+        "イイねの数({favorite_count})が条件を満たさなかったので，スキップします．".format(
+            favorite_count=favorite_count
+        )
+    )
     return None
 
 
@@ -93,7 +88,7 @@ def execute_item(driver, wait, profile, mode, item):
         return
 
     favorite_text = driver.find_element(
-        By.XPATH,
+        selenium.webdriver.common.by.By.XPATH,
         '//div[@data-testid="icon-heart-button"]/button',
     ).get_attribute("aria-label")
 
@@ -102,22 +97,44 @@ def execute_item(driver, wait, profile, mode, item):
     else:
         favorite_count = 0
 
-    click_xpath(driver, '//div[@data-testid="checkout-button"]')
+    my_lib.selenium_util.click_xpath(driver, '//div[@data-testid="checkout-button"]')
 
-    wait.until(EC.title_contains("商品の情報を編集"))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.title_contains("商品の情報を編集")
+    )
 
     # NOTE: 食品などの場合，「出品情報の確認」の表示が出るので，「OK」ボタンを押す
-    if len(driver.find_elements(By.XPATH, '//button[contains(text(), "OK")]')) != 0:
+    if (
+        len(
+            driver.find_elements(
+                selenium.webdriver.common.by.By.XPATH,
+                '//button[contains(text(), "OK")]',
+            )
+        )
+        != 0
+    ):
         logging.info("「出品情報の確認」を閉じます")
-        click_xpath(driver, '//button[contains(text(), "OK")]')
+        my_lib.selenium_util.click_xpath(driver, '//button[contains(text(), "OK")]')
 
-    wait.until(EC.presence_of_element_located((By.XPATH, '//input[@name="price"]')))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, '//input[@name="price"]')
+        )
+    )
 
     # NOTE: 梱包・発送たのメル便の場合は送料を取得
-    if len(driver.find_elements(By.XPATH, '//span[@data-testid="shipping-fee"]')) != 0:
+    if (
+        len(
+            driver.find_elements(
+                selenium.webdriver.common.by.By.XPATH,
+                '//span[@data-testid="shipping-fee"]',
+            )
+        )
+        != 0
+    ):
         shipping_fee = int(
             driver.find_element(
-                By.XPATH,
+                selenium.webdriver.common.by.XPATH,
                 '//span[@data-testid="shipping-fee"]/span[contains(@class, "number")]',
             ).text.replace(",", "")
         )
@@ -126,7 +143,11 @@ def execute_item(driver, wait, profile, mode, item):
 
     price = item["price"] - shipping_fee
 
-    cur_price = int(driver.find_element(By.XPATH, '//input[@name="price"]').get_attribute("value"))
+    cur_price = int(
+        driver.find_element(
+            selenium.webdriver.common.by.By.XPATH, '//input[@name="price"]'
+        ).get_attribute("value")
+    )
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")
 
@@ -139,32 +160,55 @@ def execute_item(driver, wait, profile, mode, item):
     else:
         new_price = int((price - discount_step) / 10) * 10  # 10円単位に丸める
 
-    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.CONTROL + "a")
-    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(Keys.BACK_SPACE)
-    driver.find_element(By.XPATH, '//input[@name="price"]').send_keys(new_price)
-    random_sleep(2)
-    click_xpath(driver, '//button[contains(text(), "変更する")]')
+    driver.find_element(
+        selenium.webdriver.common.by.By.XPATH, '//input[@name="price"]'
+    ).send_keys(selenium.webdriver.common.keys.Keys.CONTROL + "a")
+    driver.find_element(
+        selenium.webdriver.common.by.By.XPATH, '//input[@name="price"]'
+    ).send_keys(selenium.webdriver.common.keys.Keys.BACK_SPACE)
+    driver.find_element(
+        selenium.webdriver.common.by.By.XPATH, '//input[@name="price"]'
+    ).send_keys(new_price)
+    my_lib.selenium_util.random_sleep(2)
+    my_lib.selenium_util.click_xpath(driver, '//button[contains(text(), "変更する")]')
 
     time.sleep(1)
-    click_xpath(driver, '//button[contains(text(), "このまま出品する")]', is_warn=False)
+    my_lib.selenium_util.click_xpath(
+        driver, '//button[contains(text(), "このまま出品する")]', is_warn=False
+    )
 
-    wait_patiently(driver, wait, EC.title_contains(re.sub(" +", " ", item["name"])))
-    wait_patiently(
+    my_lib.selenium_util.wait_patiently(
         driver,
         wait,
-        EC.presence_of_element_located((By.XPATH, '//div[@data-testid="price"]')),
+        selenium.webdriver.support.expected_conditions.title_contains(
+            re.sub(" +", " ", item["name"])
+        ),
+    )
+    my_lib.selenium_util.wait_patiently(
+        driver,
+        wait,
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, '//div[@data-testid="price"]')
+        ),
     )
 
     # NOTE: 価格更新が反映されていない場合があるので，再度ページを取得する
     time.sleep(3)
     driver.get(driver.current_url)
-    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-testid="price"]')))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, '//div[@data-testid="price"]')
+        )
+    )
 
     new_total_price = int(
         re.sub(
             ",",
             "",
-            driver.find_element(By.XPATH, '//div[@data-testid="price"]/span[2]').text,
+            driver.find_element(
+                selenium.webdriver.common.by.By.XPATH,
+                '//div[@data-testid="price"]/span[2]',
+            ).text,
         )
     )
 
@@ -176,16 +220,18 @@ def execute_item(driver, wait, profile, mode, item):
         )
 
     logging.info(
-        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(total=item["price"], new_total=new_total_price)
+        "価格を変更しました．({total:,}円 -> {new_total:,}円)".format(
+            total=item["price"], new_total=new_total_price
+        )
     )
 
 
 def execute(config, profile, data_path, mode):
-    driver = create_driver(profile["name"], data_path)
+    driver = my_lib.selenium_util.create_driver(profile["name"], data_path)
 
-    clear_cache(driver)
+    my_lib.selenium_util.clear_cache(driver)
 
-    wait = WebDriverWait(driver, WAIT_TIMEOUT_SEC)
+    wait = selenium.webdriver.support.wait.WebDriverWait(driver, WAIT_TIMEOUT_SEC)
     ret_code = -1
 
     try:
@@ -194,29 +240,31 @@ def execute(config, profile, data_path, mode):
         mercari.login(config, driver, wait, profile)
         mercari.iter_items_on_display(driver, wait, profile, mode, [execute_item])
 
-        log_memory_usage(driver)
+        my_lib.selenium_util.log_memory_usage(driver)
 
         ret_code = 0
-    except:
+    except Exception:
         logging.error("URL: {url}".format(url=driver.current_url))
         logging.error(traceback.format_exc())
 
         if "slack" in config:
-            notify_slack.error_with_image(
+            my_lib.notify.slack.error_with_image(
                 config["slack"]["bot_token"],
                 config["slack"]["error"]["channel"]["name"],
                 config["slack"]["error"]["channel"]["id"],
                 config["slack"]["from"],
                 traceback.format_exc(),
                 {
-                    "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
+                    "data": PIL.Image.open(
+                        (io.BytesIO(driver.get_screenshot_as_png()))
+                    ),
                     "text": "エラー時のスクリーンショット",
                 },
                 interval_min=config["slack"]["error"]["interval_min"],
             )
 
-        dump_page(driver, int(random.random() * 100), DUMP_PATH)
-        clean_dump()
+        my_lib.selenium_util.dump_page(driver, int(random.random() * 100), DUMP_PATH)
+        my_lib.selenium_util.clean_dump()
 
     driver.close()
     driver.quit()
