@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import io
 import logging
 import logging.handlers
-import os
-import pathlib
 import random
 import re
 import time
 import traceback
 
-import mercari
 import my_lib.notify.slack
 import my_lib.selenium_util
+import my_lib.store.mercari.login
+import my_lib.store.mercari.scrape
 import PIL.Image
 import selenium.webdriver.common.by
 import selenium.webdriver.common.keys
@@ -21,15 +19,6 @@ import selenium.webdriver.support
 import selenium.webdriver.support.wait
 
 WAIT_TIMEOUT_SEC = 15
-WAIT_RETRY_COUNT = 1
-
-DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
-DUMP_PATH = DATA_PATH / "debug"
-LOG_PATH = DATA_PATH / "log"
-CHROME_DATA_PATH = DATA_PATH / "chrome"
-
-DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
-HIST_CSV_PATH = str(LOG_PATH / "history.csv")
 
 
 def get_modified_hour(driver):
@@ -76,7 +65,7 @@ def get_discount_step(profile, price, shipping_fee, favorite_count):
     return None
 
 
-def execute_item(driver, wait, profile, mode, item):
+def execute_item(driver, wait, profile, debug_mode, item):
     if item["is_stop"] != 0:
         logging.info("公開停止中のため，スキップします．")
         return
@@ -155,7 +144,7 @@ def execute_item(driver, wait, profile, mode, item):
     if discount_step is None:
         return
 
-    if mode["debug"]:
+    if debug_mode:
         new_price = price
     else:
         new_price = int((price - discount_step) / 10) * 10  # 10円単位に丸める
@@ -226,26 +215,36 @@ def execute_item(driver, wait, profile, mode, item):
     )
 
 
-def execute(config, profile, data_path, mode):
+def execute(config, profile, data_path, dump_path, debug_mode):
     driver = my_lib.selenium_util.create_driver(profile["name"], data_path)
 
     my_lib.selenium_util.clear_cache(driver)
 
     wait = selenium.webdriver.support.wait.WebDriverWait(driver, WAIT_TIMEOUT_SEC)
-    ret_code = -1
 
     try:
-        mercari.warmup(driver)
+        my_lib.store.mercari.login.execute(
+            config,
+            driver,
+            wait,
+            profile["line"]["user"],
+            profile["line"]["pass"],
+            dump_path,
+        )
 
-        mercari.login(config, driver, wait, profile)
-        mercari.iter_items_on_display(driver, wait, profile, mode, [execute_item])
+        my_lib.store.mercari.scrape.iter_items_on_display(
+            driver, wait, profile, debug_mode, [execute_item]
+        )
 
         my_lib.selenium_util.log_memory_usage(driver)
 
-        ret_code = 0
+        return 0
     except Exception:
         logging.error("URL: {url}".format(url=driver.current_url))
         logging.error(traceback.format_exc())
+
+        my_lib.selenium_util.dump_page(driver, int(random.random() * 100), dump_path)
+        my_lib.selenium_util.clean_dump()
 
         if "slack" in config:
             my_lib.notify.slack.error_with_image(
@@ -262,11 +261,7 @@ def execute(config, profile, data_path, mode):
                 },
                 interval_min=config["slack"]["error"]["interval_min"],
             )
-
-        my_lib.selenium_util.dump_page(driver, int(random.random() * 100), DUMP_PATH)
-        my_lib.selenium_util.clean_dump()
-
-    driver.close()
-    driver.quit()
-
-    return ret_code
+        return -1
+    finally:
+        driver.close()
+        driver.quit()

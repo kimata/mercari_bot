@@ -1,0 +1,170 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "profile": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "string"
+                    },
+                    "pass": {
+                        "type": "string"
+                    },
+                    "discount": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "favorite_count": {
+                                    "type": "integer"
+                                },
+                                "step": {
+                                    "type": "integer"
+                                },
+                                "threshold": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "favorite_count",
+                                "step",
+                                "threshold"
+                            ]
+                        }
+                    },
+                    "line": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "type": "string"
+                            },
+                            "pass": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "pass",
+                            "user"
+                        ]
+                    },
+                    "interval": {
+                        "type": "object",
+                        "properties": {
+                            "hour": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "hour"
+                        ]
+                    }
+                },
+                "required": [
+                    "discount",
+                    "interval",
+                    "line",
+                    "name",
+                    "pass",
+                    "user"
+                ]
+            }
+        },
+        "slack": {
+            "type": "object",
+            "properties": {
+                "bot_token": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "info": {
+                    "type": "object",
+                    "properties": {
+                        "channel": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "name"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "channel"
+                    ]
+                },
+                "captcha": {
+                    "type": "object",
+                    "properties": {
+                        "channel": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "channel"
+                    ]
+                },
+                "error": {
+                    "type": "object",
+                    "properties": {
+                        "channel": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name"
+                            ]
+                        },
+                        "interval_min": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "channel",
+                        "interval_min"
+                    ]
+                }
+            },
+            "required": [
+                "bot_token",
+                "captcha",
+                "error",
+                "from",
+                "info"
+            ]
+        }
+    },
+    "required": [
+        "profile",
+        "slack"
+    ]
+}
