@@ -244,7 +244,7 @@ def execute(config, profile, data_path, dump_path, debug_mode):
         logging.error(traceback.format_exc())
 
         my_lib.selenium_util.dump_page(driver, int(random.random() * 100), dump_path)
-        my_lib.selenium_util.clean_dump()
+        my_lib.selenium_util.clean_dump(dump_path)
 
         if "slack" in config:
             my_lib.notify.slack.error_with_image(

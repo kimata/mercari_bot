@@ -17,7 +17,8 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     git \
     clang \
     python3-pip \
-    smem
+    smem \
+    fonts-noto-cjk
 
 RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
@@ -48,6 +49,10 @@ RUN rm -rf /root/.rye/shims
 RUN locale-gen en_US.UTF-8
 RUN locale-gen ja_JP.UTF-8
 
+ENV LANG=ja_JP.UTF-8
+ENV LANGUAGE=ja_JP:ja
+ENV LC_ALL=ja_JP.UTF-8
+
 WORKDIR /opt/mercari-bot
 
 COPY font /usr/share/fonts/
@@ -59,4 +64,4 @@ RUN chown -R ubuntu:ubuntu .
 
 USER ubuntu
 
-CMD ["./app/mercari_bot.py", "-l"]
+CMD ["./src/app.py", "-l"]
