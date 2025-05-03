@@ -32,11 +32,11 @@ test-normal:
     cache:
         key: $CI_JOB_NAME
         paths:
-            - data/chrome/
+            - data
 
     script:
-        - mkdir -p data/chrome
-        - docker run --mount type=bind,source="$(pwd)/data/chrome",target=/opt/mercari-bot/data/chrome --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
+        - mkdir -p data
+        - docker run --mount type=bind,source="$(pwd)/data",target=/opt/mercari-bot/data --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
 
 deploy:
     stage: deploy
