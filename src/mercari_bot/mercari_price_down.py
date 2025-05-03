@@ -65,7 +65,7 @@ def get_discount_step(profile, price, shipping_fee, favorite_count):
     return None
 
 
-def execute_item(driver, wait, profile, debug_mode, item):
+def execute_item(driver, wait, profile, item, debug_mode):
     if item["is_stop"] != 0:
         logging.info("公開停止中のため，スキップします．")
         return
