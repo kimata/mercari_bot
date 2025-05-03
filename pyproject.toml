@@ -1,5 +1,5 @@
 [project]
-name = "mercari_bot"
+name = "mercari-bot"
 version = "0.1.0"
 description = "メルカリの出品アイテムを自動的に値下げするスクリプトです．"
 authors = [
