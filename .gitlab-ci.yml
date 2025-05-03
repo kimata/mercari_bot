@@ -1,10 +1,34 @@
 image: registry.green-rabbit.net:5000/kimata/local_ubuntu:241105B
 
 stages:
-    - build-image
+    # NOTE: 先にテストを実施してから、イメージを作成する。
+    # ここでビルドしたイメージは「kind: Job」で実行し、「imagePullPolicy: Always」を指定してあるので、
+    # 自動的に反映されるため。
     - test
+    - build-image
     - deploy
     - renovate
+
+test-normal:
+    stage: test
+    needs: ["build-image"]
+
+    cache:
+        key: $CI_JOB_NAME
+        paths:
+            - data
+
+    script:
+        - export GIT_SSL_NO_VERIFY=1
+        - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
+        - mv bot_config/mercari_bot.yaml config.yaml
+        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+        - mv private_font/* font
+
+        - export PATH=/root/.rye/shims/:$PATH
+        - curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
+        - rye sync
+        - rye run python src/app.py -d
 
 build-image:
     stage: build-image
@@ -19,23 +43,10 @@ build-image:
         - mv bot_config/mercari_bot.yaml config.yaml
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
-        - git config --global --add safe.directory ${PWD}
 
         - docker buildx create --name ${BUILDER} --use --config /etc/buildkitd.toml
         - docker buildx use ${BUILDER}
         - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
-
-test-normal:
-    stage: test
-    needs: ["build-image"]
-
-    cache:
-        key: $CI_JOB_NAME
-        paths:
-            - data
-
-    script:
-        - docker run --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
 
 deploy:
     stage: deploy
@@ -43,9 +54,6 @@ deploy:
     dependencies: []
 
     script:
-        # 中身はカラにしておく。
-        # このスクリプトは「kind: Job」で実行し、「imagePullPolicy: Always」を指定してあるので、
-        # 自動的に反映されるため。
         - echo "OK"
 
     rules:
