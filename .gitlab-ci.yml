@@ -27,6 +27,11 @@ test-normal:
         - export PATH=/root/.rye/shims/:$PATH
         - curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
         - rye sync
+
+        - export LANG=ja_JP.UTF-8
+        - export LANGUAGE=ja_JP:ja
+        - export LC_ALL=ja_JP.UTF-8
+
         - rye run python src/app.py -d
 
 build-image:
