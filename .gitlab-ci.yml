@@ -35,7 +35,7 @@ test-normal:
             - data
 
     script:
-        - mkdir -p data
+        - mkdir --parents --mode=777 data
         - docker run -v "$(pwd)/data:/opt/mercari-bot/data" --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
 
 deploy:
