@@ -38,8 +38,10 @@ deploy:
     dependencies: []
 
     script:
-        # 「kind: Job」で実行し、「imagePullPolicy: Always」を指定してあるので、自動的に反映される
-        - true
+        # 中身はカラにしておく。
+        # このスクリプトは「kind: Job」で実行し、「imagePullPolicy: Always」を指定してあるので、
+        # 自動的に反映されるため。
+        - echo "OK"
 
     rules:
         # NOTE: 自動実行ではデプロイしない
