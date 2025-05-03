@@ -24,7 +24,7 @@ test-normal:
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
 
-        - apt install smem
+        - apt install --yes smem
 
         - export PATH=/root/.rye/shims/:$PATH
         - curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
