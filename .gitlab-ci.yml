@@ -36,7 +36,7 @@ test-normal:
 
     script:
         - mkdir -p data/chrome
-        - docker run --mount type=bind,source=data/chrome,target=/opt/mercari-bot/data/chrome --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
+        - docker run --mount type=bind,source="$(pwd)/data/chrome",target=/opt/mercari-bot/data/chrome --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
 
 deploy:
     stage: deploy
