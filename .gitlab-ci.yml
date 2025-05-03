@@ -3,6 +3,7 @@ image: registry.green-rabbit.net:5000/kimata/local_ubuntu:241105B
 stages:
     - build-image
     - test
+    - deploy
     - renovate
 
 build-image:
@@ -30,6 +31,23 @@ test-normal:
 
     script:
         - docker run --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
+
+deploy:
+    stage: deploy
+
+    dependencies: []
+
+    script:
+        # 「kind: Job」で実行し、「imagePullPolicy: Always」を指定してあるので、自動的に反映される
+        - true
+
+    rules:
+        # NOTE: 自動実行ではデプロイしない
+        - if: $CI_PIPELINE_SOURCE == "schedule"
+          when: never
+        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+          when: never
+        - when: on_success
 
 renovate:
     stage: renovate
