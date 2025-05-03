@@ -38,6 +38,7 @@ test-normal:
         - echo $(pwd)
         - mkdir -p data
         - ls -la data
+        - ls -la /builds/kimata/mercari-bot/data
         - docker run --mount type=bind,source="$(pwd)/data",target=/opt/mercari-bot/data --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/app.py -d
 
 deploy:
