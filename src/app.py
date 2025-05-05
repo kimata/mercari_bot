@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 メルカリに出品中のアイテムの価格を自動的に値下げします．
 
@@ -16,10 +15,9 @@ import logging
 import pathlib
 import sys
 
+import mercari_bot.mercari_price_down
 import my_lib.notify.mail
 import my_lib.notify.slack
-
-import mercari_bot.mercari_price_down
 
 SCHEMA_CONFIG = "config.schema"
 
@@ -38,9 +36,7 @@ def execute(config, notify_log, debug_mode, log_str_io):
 
     if notify_log:
         if "mail" in config:
-            my_lib.notify.mail.send(
-                config, "<br />".join(log_str_io.getvalue().splitlines())
-            )
+            my_lib.notify.mail.send(config["mail"], "<br />".join(log_str_io.getvalue().splitlines()))
         if "slack" in config:
             my_lib.notify.slack.info(
                 config["slack"]["bot_token"],
@@ -66,9 +62,7 @@ if __name__ == "__main__":
 
     log_level = logging.DEBUG if debug_mode else logging.INFO
 
-    log_str_io = my_lib.logger.init(
-        "bot.mercari.inventory", level=log_level, is_str_log=True
-    )
+    log_str_io = my_lib.logger.init("bot.mercari.inventory", level=log_level, is_str_log=True)
 
     config = my_lib.config.load(config_file, pathlib.Path(SCHEMA_CONFIG))
 
