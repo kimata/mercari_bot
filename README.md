@@ -6,24 +6,64 @@
 -   値下げする幅
 -   値下げを停止する価格
 
-## 準備
 
-Docker を動かせる必要があります。お使いの環境に合わせてインストールしてください。
+## 動作環境
+
+基本的には，Python と Selenium が動作する環境であれば動作します。
+下記の環境での動作を確認しています。
+
+- Linux (Ubuntu 22.04)
 
 ## 設定
 
-ログイン情報や値下げ内容を `config.yaml` で指定します。
+同封されている `config.example.yaml` を `config.yaml` に名前変更して，下記の部分を書き換えます。
 
-`config.example.yaml` を名前変更して設定してください。
-設定方法方はファイルを見ていただけばわかると思います。
+```yaml:config.yaml
+profile:
+    - name: Profile 1
+      line:
+          user: LINE のユーザ ID
+          pass: LINE のログインパスワード
+```
 
-## 実行方法
+メルカリに LINE アカウントでログインするため、LINE にログインするのに必要な情報を指定します。
+(一度パスコードでログインできるようにした場合、メルカリにメールアドレスとパスワードではログインできなくなります)
+
+ログインに関する認証コードのやり取りを Slack で行いたい場合は、下記の部分もコメントアウトを解除した上で書き換えてください。
+コメントアウトしたままだと、標準入出力経由でやり取りする動作になります。
+
+```yaml:config.yaml
+slack:
+    bot_token: xoxp-XXXXXXXXXXXX-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    from: Mercari Bot
+    info:
+        channel:
+            name: "#mercari"
+    captcha:
+        channel:
+            name: "#captcha"
+            id: XXXXXXXXXXX
+    error:
+        channel:
+            name: "#error"
+            id: XXXXXXXXXXX
+        interval_min: 180
+```
+
+## Linux での動かし方
+
+### 準備
 
 ```bash:bash
-docker build -t mercari-bot .
-docker run --rm -it mercari-bot
+sudo apt install docker-compose
+```
+
+### 実行
+
+```bash:bash
+docker compose run --rm mercari-bot
 ```
 
 # ライセンス
 
-Apache License Version 2.0 を適用します．
+Apache License Version 2.0 を適用します。

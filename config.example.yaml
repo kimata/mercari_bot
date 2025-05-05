@@ -1,42 +1,39 @@
 profile:
     - name: Profile 1
-      user: メールアドレス
-      pass: パスワード
+      line:
+        user: LINE のユーザ ID
+        pass: LINE のログインパスワード
 
       discount:
-          - favorite_count: 10 # いいねの数がこの数以上だった場合に適用
-            step: 200 # 1回あたりの値下げ幅〔円〕
-            threshold: 3000 # 値下げを止める価格〔円〕
-          - favorite_count: 0 # いいねの数がこの数以上だった場合に適用
-            step: 100 # 1回あたりの値下げ幅〔円〕
-            threshold: 3000 # 値下げを止める価格〔円〕
+        - favorite_count: 10 # いいねの数がこの数以上だった場合に適用
+          step: 200 # 1回あたりの値下げ幅〔円〕
+          threshold: 3000 # 値下げを止める価格〔円〕
+        - favorite_count: 0 # いいねの数がこの数以上だった場合に適用
+          step: 100 # 1回あたりの値下げ幅〔円〕
+          threshold: 3000 # 値下げを止める価格〔円〕
 
       interval:
-          hour: 20 # 更新時間がこの時間より短い場合，スキップ
+        hour: 20 # 更新時間がこの時間より短い場合，スキップ
 
 # 動作ログをメールで送信する場合，以下を設定
 # mail:
-#   user:
-#   pass:
-#   from:
-#   to:
-#   subject:
+#     user:
+#     pass:
+#     from:
+#     to:
+#     subject:
 
 # 動作ログを Slack で通知したり，Slack 経由で認証コードを入力したい場合，以下を設定
 # slack:
 #     bot_token: xoxp-XXXXXXXXXXXX-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 #     from: Mercari Bot
-
 #     info:
 #         channel:
 #             name: "#mercari"
-
 #     captcha:
 #         channel:
 #             name: "#captcha"
 #             id: XXXXXXXXXXX
-
 #     error:
 #         channel:
 #             name: "#error"
