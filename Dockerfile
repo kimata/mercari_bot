@@ -4,10 +4,6 @@ FROM ubuntu:24.04
 # python:3.11.4-bookworm とかを使った場合，Selenium を同時に複数動かせないので，
 # Ubuntu イメージを使う
 
-ARG IMAGE_BUILD_DATE
-
-ENV TZ=Asia/Tokyo
-
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
@@ -48,8 +44,10 @@ RUN rm -rf /root/.rye/shims
 RUN locale-gen en_US.UTF-8
 RUN locale-gen ja_JP.UTF-8
 
+ARG IMAGE_BUILD_DATE
 ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
 
+ENV TZ=Asia/Tokyo
 ENV LANG=ja_JP.UTF-8
 ENV LANGUAGE=ja_JP:ja
 ENV LC_ALL=ja_JP.UTF-8
