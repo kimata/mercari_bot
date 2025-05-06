@@ -7,7 +7,6 @@ FROM ubuntu:24.04
 ARG IMAGE_BUILD_DATE
 
 ENV TZ=Asia/Tokyo
-ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
 
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -48,6 +47,8 @@ RUN rm -rf /root/.rye/shims
 
 RUN locale-gen en_US.UTF-8
 RUN locale-gen ja_JP.UTF-8
+
+ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
 
 ENV LANG=ja_JP.UTF-8
 ENV LANGUAGE=ja_JP:ja
