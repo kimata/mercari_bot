@@ -54,7 +54,7 @@ build-image:
         - docker buildx create --driver docker-container --name ${BUILDER} --use --config /etc/buildkitd.toml
         - docker buildx use ${BUILDER}
         - docker buildx inspect --bootstrap
-        - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
+        - docker buildx build --progress=plain --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
 
 deploy:
     stage: deploy
