@@ -55,14 +55,25 @@ slack:
 ### 準備
 
 ```bash:bash
-sudo apt install docker-compose
+sudo apt install docker
 ```
 
 ### 実行
 
 ```bash:bash
-docker compose run --rm mercari-bot
+docker compose run --build --rm mercari-bot
 ```
+
+### Docker を使いたくない場合
+
+[Rye](https://rye.astral.sh/) と Google Chrome がインストールされた環境であれば，
+下記のようにして Docker を使わずに実行できます．
+
+```
+rye sync
+rye run python src/app.py
+```
+
 
 # ライセンス
 
