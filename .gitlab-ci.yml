@@ -16,6 +16,7 @@ test-normal:
         key: $CI_JOB_NAME
         paths:
             - data
+            - .venv
 
     script:
         - export GIT_SSL_NO_VERIFY=1
