@@ -35,6 +35,8 @@ def get_modified_hour(driver):
         return int("".join(filter(str.isdigit, modified_text))) * 24
     elif re.compile(r"か月前").search(modified_text):
         return int("".join(filter(str.isdigit, modified_text))) * 24 * 30
+    elif re.compile(r"半年以上前").search(modified_text):
+        return 24 * 30 * 6
     else:
         return -1
 
