@@ -1,0 +1,72 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+    name: pv-bot-mercari-inventory-control
+    namespace: bot
+spec:
+    storageClassName: manual
+    capacity:
+        storage: 2Gi
+    accessModes:
+        - ReadWriteOnce
+    local:
+        path: /home/kimata/github/mercari-bot/data
+    nodeAffinity:
+        required:
+            nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - engine
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: pvc-bot-mercari-inventory-control
+    namespace: bot
+spec:
+    storageClassName: manual
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 2Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: mercari-inventory-control-cronjob
+    namespace: bot
+    labels:
+        app: mercari-inventory-control
+spec:
+    timeZone: Asia/Tokyo
+    schedule: 0 7,18 * * *
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
+    jobTemplate:
+        spec:
+            backoffLimit: 1
+            template:
+                spec:
+                    containers:
+                        - name: mercari-inventory-control
+                          image: registry.green-rabbit.net:5000/kimata/mercari-bot:latest
+                          imagePullPolicy: Always
+                          volumeMounts:
+                            - mountPath: /opt/mercari-bot/data
+                              name: data
+                          resources:
+                            requests:
+                                memory: 1Gi
+                            limits:
+                                memory: 8Gi
+                    restartPolicy: Never
+                    volumes:
+                        - name: data
+                          persistentVolumeClaim:
+                            claimName: pvc-bot-mercari-inventory-control
+                    dnsPolicy: Default
+                    nodeSelector:
+                        kubernetes.io/hostname: engine
