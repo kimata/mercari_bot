@@ -51,33 +51,29 @@ slack:
         interval_min: 180
 ```
 
-## 動かし方
-
-### Linux の場合
-
-#### 準備
+## 準備
 
 ```bash:bash
 sudo apt install docker
 ```
 
-#### 実行
+## 実行 (Docker 使用)
 
 ```bash:bash
 docker compose run --build --rm mercari-bot
 ```
 
-#### Docker を使いたくない場合
+## 実行 (Docker 不使用)
 
 [Rye](https://rye.astral.sh/) と Google Chrome がインストールされた環境であれば，
 下記のようにして Docker を使わずに実行できます．
 
-```
+```bash:bash
 rye sync
 rye run python src/app.py
 ```
 
-### Kubernetes の場合
+## Kubernetes で動かす場合
 
 Kubernetes で CronJob を使って定期的に実行するため設定ファイルが `kubernetes/mercari-bot.yaml` に入っていますので，
 適宜カスタマイズして使っていただければと思います。
