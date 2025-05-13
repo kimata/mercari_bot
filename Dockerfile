@@ -26,7 +26,11 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PATH=/root/.rye/shims/:$PATH
 
-RUN curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
+RUN --mount=type=cache,target=/tmp/rye-cache \
+    if [ ! -f /tmp/rye-cache/rye-install.sh ]; then \
+        curl -sSfL https://rye.astral.sh/get -o /tmp/rye-cache/rye-install.sh; \
+    fi && \
+    RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash /tmp/rye-cache/rye-install.sh
 
 RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=.python-version,target=.python-version \
