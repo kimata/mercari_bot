@@ -3,7 +3,6 @@
 メルカリ出品アイテムの自動価格調整システム
 
 [![Docker](https://github.com/kimata/mercari-bot/actions/workflows/docker.yaml/badge.svg)](https://github.com/kimata/mercari-bot/actions/workflows/docker.yaml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## 📋 概要
 
