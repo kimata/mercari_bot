@@ -9,62 +9,54 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
     curl \
     ca-certificates \
+    build-essential \
     git \
-    clang \
-    python3-pip \
-    smem \
-    fonts-noto-cjk
+    language-pack-ja \
+    fonts-noto-cjk \
+    smem
+
+ENV TZ=Asia/Tokyo \
+    LANG=ja_JP.UTF-8 \
+    LANGUAGE=ja_JP:ja \
+    LC_ALL=ja_JP.UTF-8
+
+RUN locale-gen en_US.UTF-8
+RUN locale-gen ja_JP.UTF-8
 
 RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
-    language-pack-ja \
     ./google-chrome-stable_current_amd64.deb
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PATH=/root/.rye/shims/:$PATH
 
-RUN --mount=type=cache,target=/tmp/rye-cache \
-    if [ ! -f /tmp/rye-cache/rye-install.sh ]; then \
-        curl -sSfL https://rye.astral.sh/get -o /tmp/rye-cache/rye-install.sh; \
-    fi && \
-    RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash /tmp/rye-cache/rye-install.sh
+COPY font /usr/share/fonts/
+
+USER ubuntu
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/home/ubuntu/.local/bin:$PATH"
+ENV UV_LINK_MODE=copy
+
+# ubuntu ユーザーで uv をインストール
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+WORKDIR /opt/mercari-bot
 
 RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=.python-version,target=.python-version \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=README.md,target=README.md \
-    rye lock
-
-RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=README.md,target=README.md \
-    --mount=type=cache,target=/root/.cache/pip \
-    pip install --break-system-packages --no-cache-dir -r requirements.lock
-
-# Rye は requreiments.lock の生成のみに使うため，削除しておく．
-RUN rm -rf /root/.rye/shims
-
-RUN locale-gen en_US.UTF-8
-RUN locale-gen ja_JP.UTF-8
+    --mount=type=cache,target=/home/ubuntu/.cache/uv,uid=1000,gid=1000 \
+    uv sync --locked --no-install-project --no-editable
 
 ARG IMAGE_BUILD_DATE
 ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
 
-ENV TZ=Asia/Tokyo
-ENV LANG=ja_JP.UTF-8
-ENV LANGUAGE=ja_JP:ja
-ENV LC_ALL=ja_JP.UTF-8
-
-WORKDIR /opt/mercari-bot
-
-COPY font /usr/share/fonts/
-
-COPY . .
+COPY --chown=ubuntu:ubuntu . .
 
 RUN mkdir -p data
-RUN chown -R ubuntu:ubuntu .
 
-USER ubuntu
-
+ENTRYPOINT ["uv", "run"]
 CMD ["./src/app.py", "-l"]
