@@ -141,7 +141,7 @@ deploy:
           artifacts: false
 
     script:
-        - echo "OK (CronJob で imagePullPolicy: Always で実行されるので自動的に latest が deploy される)"
+        - 'echo "OK (CronJob で imagePullPolicy: Always で実行されるので自動的に latest が deploy される)"'
 
     rules:
         # NOTE: 自動実行ではデプロイしない
