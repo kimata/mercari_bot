@@ -1,4 +1,4 @@
-image: registry.green-rabbit.net:5000/kimata/local_ubuntu:250615_38f4fdb9
+image: registry.green-rabbit.net:5000/kimata/local_ubuntu:250622_9f69fc78
 
 variables:
     UV_LINK_MODE: copy

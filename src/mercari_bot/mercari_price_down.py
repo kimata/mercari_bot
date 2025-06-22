@@ -48,31 +48,33 @@ def get_discount_step(scrape_config, price, shipping_fee, favorite_count):
                 return discount_info["step"]
             else:
                 logging.info(
-                    "現在価格が%s円 (送料: %s円) のため，スキップします．", f"{price:,}", f"{shipping_fee:,}"
+                    "現在価格が%s円 (送料: %s円) のため、スキップします。", f"{price:,}", f"{shipping_fee:,}"
                 )
 
                 return None
 
-    logging.info("イイねの数(%d)が条件を満たさなかったので，スキップします．", favorite_count)
+    logging.info("イイねの数(%d)が条件を満たさなかったので、スキップします。", favorite_count)
     return None
 
 
 def execute_item(driver, wait, scrape_config, item, debug_mode):
     if item["is_stop"] != 0:
-        logging.info("公開停止中のため，スキップします．")
+        logging.info("公開停止中のため、スキップします。")
         return
 
     modified_hour = get_modified_hour(driver)
 
     if modified_hour < scrape_config["interval"]["hour"]:
-        logging.info("更新してから %d 時間しか経過していないため，スキップします．", modified_hour)
+        logging.info("更新してから %d 時間しか経過していないため、スキップします。", modified_hour)
         return
 
-    # my_lib.selenium_util.click_xpath(driver, '//span[contains(text(), "閉じる")]', is_warn=False)
-
-    my_lib.selenium_util.click_xpath(driver, '//button[@aria-labelledby=":r1r:"]', is_warn=False)
+        my_lib.selenium_util.click_xpath(driver, '//button[@aria-labelledby=":r1r:"]', is_warn=False)
 
     my_lib.selenium_util.click_xpath(driver, '//a[@data-testid="checkout-link"]')
+
+    if my_lib.selenium_util.xpath_exists(driver, '//button[contains(text(), "タイムセールを終了する")]'):
+        logging.info("タイムセール中のため、スキップします。")
+        return
 
     wait.until(selenium.webdriver.support.expected_conditions.title_contains("商品の情報を編集"))
 
@@ -111,7 +113,7 @@ def execute_item(driver, wait, scrape_config, item, debug_mode):
         )
     )
     if cur_price != price:
-        raise RuntimeError("ページ遷移中に価格が変更されました．")  # noqa: EM101
+        raise RuntimeError("ページ遷移中に価格が変更されました。")  # noqa: EM101
 
     discount_step = get_discount_step(scrape_config, price, shipping_fee, item["favorite"])
     if discount_step is None:
@@ -145,7 +147,7 @@ def execute_item(driver, wait, scrape_config, item, debug_mode):
         ),
     )
 
-    # NOTE: 価格更新が反映されていない場合があるので，再度ページを取得する
+    # NOTE: 価格更新が反映されていない場合があるので、再度ページを取得する
     time.sleep(3)
     driver.get(driver.current_url)
     wait.until(
@@ -167,12 +169,12 @@ def execute_item(driver, wait, scrape_config, item, debug_mode):
 
     if new_total_price != (new_price + shipping_fee):
         error_message = (
-            f"編集後の価格が意図したものと異なっています．"
+            f"編集後の価格が意図したものと異なっています。"
             f"(期待値: {new_price + shipping_fee:,}円, 実際: {new_total_price:,}円)"
         )
         raise RuntimeError(error_message)
 
-    logging.info("価格を変更しました．(%s円 -> %s円)", f"{item['price']:,}", f"{new_total_price:,}")
+    logging.info("価格を変更しました。(%s円 -> %s円)", f"{item['price']:,}", f"{new_total_price:,}")
 
 
 def execute(config, profile, data_path, dump_path, debug_mode):

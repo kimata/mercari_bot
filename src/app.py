@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-メルカリに出品中のアイテムの価格を自動的に値下げします．
+メルカリに出品中のアイテムの価格を自動的に値下げします。
 
 Usage:
   app.py [-c CONFIG] [-l] [-d]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します． [default: config.yaml]
-  -l                : 動作ログを Slack やメールで通知します．
-  -d                : デバッグモードで動作します．(価格変更は行いません)
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。 [default: config.yaml]
+  -l                : 動作ログを Slack やメールで通知します。
+  -d                : デバッグモードで動作します。(価格変更は行いません)
 """
 
 import logging
