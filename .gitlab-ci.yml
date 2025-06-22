@@ -110,6 +110,10 @@ test-normal:
             - .uv_python
           policy: pull
 
+    artifacts:
+        when: always
+        paths:
+            - data/debug/**
 
 
 tag-latest:
