@@ -114,6 +114,11 @@ test-normal:
             - .uv_python
           policy: pull
 
+        - key: ${CI_PROJECT_NAME}-selenium
+          paths:
+            - data/chrome
+          policy: pull-push
+
     artifacts:
         when: always
         paths:
