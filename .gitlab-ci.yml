@@ -93,6 +93,10 @@ test-normal:
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
 
+        - export LANG=ja_JP.UTF-8
+        - export LANGUAGE=ja_JP:ja
+        - export LC_ALL=ja_JP.UTF-8
+
         - uv run python src/app.py -d
 
     cache:
