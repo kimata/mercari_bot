@@ -2,7 +2,7 @@
 
 メルカリ出品アイテムの自動価格調整システム
 
-[![Docker](https://github.com/kimata/mercari_bot/actions/workflows/docker.yaml/badge.svg)](https://github.com/kimata/mercari_bot/actions/workflows/docker.yaml)
+[![Docker](https://github.com/kimata/mercari-bot/actions/workflows/docker.yaml/badge.svg)](https://github.com/kimata/mercari-bot/actions/workflows/docker.yaml)
 
 ## 📋 概要
 
