@@ -137,7 +137,7 @@ deploy:
 
     needs:
         - generate-tag
-        - job: test-walk-through
+        - job: test-normal
           artifacts: false
 
     script:
