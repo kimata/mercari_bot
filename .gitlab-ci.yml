@@ -1,51 +1,38 @@
-image: registry.green-rabbit.net:5000/kimata/local_ubuntu:241105B
+image: registry.green-rabbit.net:5000/kimata/local_ubuntu:250615_38f4fdb9
+
+variables:
+    UV_LINK_MODE: copy
+    UV_PYTHON_INSTALL_DIR: ${CI_PROJECT_DIR}/.uv_python
 
 stages:
-    # NOTE: 先にテストを実施してから、イメージを作成する。
-    # ここでビルドしたイメージは「kind: Job」で実行し、「imagePullPolicy: Always」を指定してあるので、
-    # 自動的に反映されるため。
-    - test
+    - generate-tag
     - build-image
+    - pre-test
+    - test
+    - tag-latest
     - deploy
     - renovate
 
-test-normal:
-    stage: test
-
-    cache:
-        key: ${CI_JOB_NAME}
-        paths:
-            - data
-            - .venv
-
+generate-tag:
+    stage: generate-tag
     script:
-        - export GIT_SSL_NO_VERIFY=1
-        - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
-        - mv bot_config/mercari_bot.yaml config.yaml
-        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
-        - mv private_font/* font
-
-        - apt-get update
-        - apt-get install --yes smem
-
-        - export PATH=/root/.rye/shims/:$PATH
-        - curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
-        - rye sync
-
-        - export LANG=ja_JP.UTF-8
-        - export LANGUAGE=ja_JP:ja
-        - export LC_ALL=ja_JP.UTF-8
-
-        - rye run python src/app.py -d
+        - echo "TAG=$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}" > tag.env
+    artifacts:
+        reports:
+            dotenv: tag.env
+        expire_in: 1 hour
 
 build-image:
     stage: build-image
 
+    needs:
+        - generate-tag
+
     variables:
-        BUILDER: builder
+        BUILDER: arm_builder
 
     script:
-        # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
+        - 'echo "Building: ${CI_REGISTRY_IMAGE}:${TAG}"'
         - export GIT_SSL_NO_VERIFY=1
         - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
         - mv bot_config/mercari_bot.yaml config.yaml
@@ -55,15 +42,106 @@ build-image:
         - docker buildx create --driver docker-container --name ${BUILDER} --use --config /etc/buildkitd.toml
         - docker buildx use ${BUILDER}
         - docker buildx inspect --bootstrap
-        - docker buildx build --provenance=false --progress=plain --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
+        - docker buildx build --provenance=false --progress=plain --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:latest --cache-to type=inline --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --tag ${CI_REGISTRY_IMAGE}:${TAG} --push .
+
+    artifacts:
+        paths:
+            - config.yaml
+            - target.yaml
+
+test-prepare:
+    stage: pre-test
+
+    needs: []
+
+    script:
+        - uv sync --locked --no-editable
+
+    artifacts:
+        paths:
+            - .venv
+            - .uv_python
+
+        expire_in: 1 hour
+
+    cache:
+        - key:
+            files:
+                - pyproject.toml
+                - .gitlab-ci.yml
+            prefix: ${CI_COMMIT_REF_SLUG}-venv
+          paths:
+            - .venv
+          policy: pull-push
+
+        - key: ${CI_COMMIT_REF_SLUG}-uv-toolchain
+          paths:
+            - .uv_python
+          policy: pull-push
+
+
+test-normal:
+    stage: test
+
+    needs:
+        - test-prepare
+
+    script:
+        - export GIT_SSL_NO_VERIFY=1
+        - git clone https://gitlab.green-rabbit.net/kimata/bot_config.git
+        - mv bot_config/mercari_bot.yaml config.yaml
+        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+        - mv private_font/* font
+
+        - uv run python src/app.py -d
+
+    cache:
+        - key:
+            files:
+                - pyproject.toml
+                - .gitlab-ci.yml
+            prefix: ${CI_COMMIT_REF_SLUG}-venv
+          paths:
+            - .venv
+          policy: pull
+
+        - key: ${CI_COMMIT_REF_SLUG}-uv-toolchain
+          paths:
+            - .uv_python
+          policy: pull
+
+
+
+tag-latest:
+    stage: tag-latest
+
+    needs:
+        - generate-tag
+        - job: test-normal
+          artifacts: false
+
+    script:
+        - 'echo "Tagging ${CI_REGISTRY_IMAGE}:${TAG} as latest"'
+        - docker pull ${CI_REGISTRY_IMAGE}:${TAG}
+        - docker tag ${CI_REGISTRY_IMAGE}:${TAG} ${CI_REGISTRY_IMAGE}:latest
+        - docker push ${CI_REGISTRY_IMAGE}:latest
+
+    rules:
+        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+          when: never
+        - when: on_success
+
 
 deploy:
     stage: deploy
 
-    dependencies: []
+    needs:
+        - generate-tag
+        - job: test-walk-through
+          artifacts: false
 
     script:
-        - echo "OK"
+        - echo "OK (CronJob で imagePullPolicy: Always で実行されるので自動的に latest が deploy される)"
 
     rules:
         # NOTE: 自動実行ではデプロイしない
@@ -73,16 +151,15 @@ deploy:
           when: never
         - when: on_success
 
+
 renovate:
     stage: renovate
     image:
         name: registry.green-rabbit.net:5000/kimata/local_renovate:36
-
         entrypoint: [""]
     script:
         - renovate --platform gitlab --token ${RENOVATE_TOKEN} --endpoint ${CI_SERVER_URL}/api/v4 ${CI_PROJECT_PATH}
-        # # NOTE: ついでにお掃除
-        #  - docker rm $(docker ps -a --filter "status=exited" -q) || true
+
     rules:
         - if: '$CI_COMMIT_BRANCH != "master"'
           when: never

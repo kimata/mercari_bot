@@ -68,29 +68,15 @@ def execute_item(driver, wait, scrape_config, item, debug_mode):
         logging.info("更新してから %d 時間しか経過していないため，スキップします．", modified_hour)
         return
 
-    favorite_text = driver.find_element(
-        selenium.webdriver.common.by.By.XPATH,
-        '//div[@data-testid="icon-heart-button"]/button',
-    ).get_attribute("aria-label")
+    # my_lib.selenium_util.click_xpath(driver, '//span[contains(text(), "閉じる")]', is_warn=False)
 
-    favorite_count = int(favorite_text) if re.search("\\d+", favorite_text) else 0
+    my_lib.selenium_util.click_xpath(driver, '//button[@aria-labelledby=":r1r:"]', is_warn=False)
 
-    my_lib.selenium_util.click_xpath(driver, '//div[@data-testid="checkout-button"]')
+    my_lib.selenium_util.click_xpath(driver, '//a[@data-testid="checkout-link"]')
 
     wait.until(selenium.webdriver.support.expected_conditions.title_contains("商品の情報を編集"))
 
-    # NOTE: 食品などの場合，「出品情報の確認」の表示が出るので，「OK」ボタンを押す
-    if (
-        len(
-            driver.find_elements(
-                selenium.webdriver.common.by.By.XPATH,
-                '//button[contains(text(), "OK")]',
-            )
-        )
-        != 0
-    ):
-        logging.info("「出品情報の確認」を閉じます")
-        my_lib.selenium_util.click_xpath(driver, '//button[contains(text(), "OK")]')
+    my_lib.selenium_util.click_xpath(driver, '//button[contains(text(), "OK")]', is_warn=False)
 
     wait.until(
         selenium.webdriver.support.expected_conditions.presence_of_element_located(
@@ -127,7 +113,7 @@ def execute_item(driver, wait, scrape_config, item, debug_mode):
     if cur_price != price:
         raise RuntimeError("ページ遷移中に価格が変更されました．")  # noqa: EM101
 
-    discount_step = get_discount_step(scrape_config, price, shipping_fee, favorite_count)
+    discount_step = get_discount_step(scrape_config, price, shipping_fee, item["favorite"])
     if discount_step is None:
         return
 
