@@ -40,7 +40,7 @@
 ### インフラ
 - **コンテナ**: Docker / Docker Compose
 - **オーケストレーション**: Kubernetes (CronJob)
-- **パッケージ管理**: Rye / Poetry
+- **パッケージ管理**: uv
 
 ## 🚀 セットアップ
 
@@ -118,39 +118,38 @@ docker compose up -d
 
 ### Docker を使用しない場合
 
-#### Rye を使用（推奨）
+#### uv を使用（推奨）
 
 ```bash
-# Ryeのインストール（未インストールの場合）
-curl -sSf https://rye.astral.sh/get | bash
+# uvのインストール（未インストールの場合）
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 依存関係のインストールと実行
-rye sync
-rye run python src/app.py
+uv sync
+uv run python src/app.py
 ```
 
-#### Poetry を使用（代替）
+#### pip を使用（代替）
 
 ```bash
-# Poetryのインストール（未インストールの場合）
-pip install poetry
+# 依存関係のインストール
+pip install -r requirements.txt
 
-# 依存関係のインストールと実行
-poetry install
-poetry run python src/app.py
+# 実行
+python src/app.py
 ```
 
 ### コマンドラインオプション
 
 ```bash
 # デバッグモード（実際に値下げせず確認のみ）
-rye run python src/app.py -d
+uv run python src/app.py -d
 
 # 設定ファイルを指定
-rye run python src/app.py -c custom-config.yaml
+uv run python src/app.py -c custom-config.yaml
 
 # ログ通知を有効化
-rye run python src/app.py -l
+uv run python src/app.py -l
 ```
 
 ## ☸️ Kubernetes デプロイ
@@ -205,23 +204,23 @@ data:
 
 ```bash
 # ユニットテスト
-rye run pytest
+uv run pytest
 
 # 特定のテストファイル
-rye run pytest tests/test_mercari.py
+uv run pytest tests/test_mercari.py
 
 # カバレッジレポート付き
-rye run pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 ```
 
 ### コード品質チェック
 
 ```bash
 # フォーマット
-rye run black src/
+uv run black src/
 
 # リント
-rye run flake8 src/
+uv run flake8 src/
 ```
 
 ## 📊 CI/CD
