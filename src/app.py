@@ -25,6 +25,8 @@ SCHEMA_CONFIG = "config.schema"
 def execute(config, notify_log, debug_mode, log_str_io):
     ret_code = 0
 
+    logging.info("Start")
+
     for profile in config["profile"]:
         ret_code += mercari_bot.mercari_price_down.execute(
             config,
@@ -33,6 +35,8 @@ def execute(config, notify_log, debug_mode, log_str_io):
             pathlib.Path(config["data"]["dump"]),
             debug_mode,
         )
+
+    logging.info("Finish!")
 
     if notify_log:
         if "mail" in config:
