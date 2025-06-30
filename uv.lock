@@ -948,7 +948,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "docopt-ng", specifier = ">=0.9.0" },
-    { name = "my-lib", git = "https://github.com/kimata/my-py-lib?rev=c7cbba63a918fff0caa1c9d88f7f24298428b6a4" },
+    { name = "my-lib", git = "https://github.com/kimata/my-py-lib?rev=19a226ec0e14e0c4e5900aae40029bfbdc9e01e4" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "pydub", specifier = ">=0.25.1" },
     { name = "selenium", specifier = ">=4.31.0" },
@@ -1074,7 +1074,7 @@ wheels = [
 [[package]]
 name = "my-lib"
 version = "0.1.0"
-source = { git = "https://github.com/kimata/my-py-lib?rev=c7cbba63a918fff0caa1c9d88f7f24298428b6a4#c7cbba63a918fff0caa1c9d88f7f24298428b6a4" }
+source = { git = "https://github.com/kimata/my-py-lib?rev=19a226ec0e14e0c4e5900aae40029bfbdc9e01e4#19a226ec0e14e0c4e5900aae40029bfbdc9e01e4" }
 dependencies = [
     { name = "coloredlogs" },
     { name = "docopt-ng" },
@@ -1092,6 +1092,7 @@ dependencies = [
     { name = "rich" },
     { name = "slack-sdk" },
     { name = "smbus2" },
+    { name = "spidev" },
     { name = "sseclient" },
     { name = "uptime" },
 ]
@@ -1941,6 +1942,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/a9/7b/51d8b756aa1066b3f
 wheels = [
     { url = "https://files.pythonhosted.org/packages/aa/cd/4b5f5d04c8a4e25c376858d0ad28c325f079f17c82bf379185abf45e41bf/speechrecognition-3.14.3-py3-none-any.whl", hash = "sha256:1859fbb09ae23fa759200f5b0677307f1fb16e2c5c798f4259fcc41dd5399fe6", size = 32853520, upload-time = "2025-05-12T23:42:23.485Z" },
 ]
+
+[[package]]
+name = "spidev"
+version = "3.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b5/99/dd50af8200e224ce9412ad01cdbeeb5b39b2d61acd72138f2b92c4a6d619/spidev-3.7.tar.gz", hash = "sha256:ce628a5ff489f45132679879bff5f455a66abf9751af01843850155b06ae92f0", size = 11616, upload-time = "2025-05-06T14:23:30.783Z" }
 
 [[package]]
 name = "sseclient"
